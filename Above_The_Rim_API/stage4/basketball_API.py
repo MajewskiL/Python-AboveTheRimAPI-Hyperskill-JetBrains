@@ -53,14 +53,14 @@ def games():
     if method == "GET":
         if len(GAMES) == 0:
             return '', 204
-        games = []
-        for game in GAMES:
-            games.append({"home_team": game["home_team"], "visiting_team": game["visiting_team"], "score": game["score"]})
-        return jsonify(games), 200
+        return_games = []
+        for g in GAMES:
+            return_games.append({TEAMS[g["home_team"]]["name"]: g["score"][0], TEAMS[g["visiting_team"]]["name"]: g["score"][1]})
+        return jsonify(return_games), 200
     else:
         data = request.get_json()
         if any([data["home_team"] not in TEAMS, data["visiting_team"] not in TEAMS]):
-            return jsonify({"error": "Wrong team name."})
+            return jsonify({"error": "Wrong team name."}), 400
         data["partial_score"] = []
         GAMES.append(data)
         return jsonify({"status": "OK"}), 201
@@ -73,11 +73,14 @@ def games2():
     if method == "GET":
         if len(GAMES) == 0:
             return '', 204
-        return jsonify(GAMES), 200
+        return_games = []
+        for g in GAMES:
+            return_games.append({TEAMS[g["home_team"]]["name"]: g["score"][0], TEAMS[g["visiting_team"]]["name"]: g["score"][1]})
+        return jsonify(return_games), 200
     else:
         data = request.get_json()
-        if any([data["home_team"] not in TEAMS, data["visiting_team"] not in TEAMS]):
-            return jsonify({"error": "Wrong team name."})
+        if any([keys not in ("home_team", "visiting_team", "partial_score") for keys, values in data.items()]):
+            return jsonify({"error": "Wrong keys in JSON."}), 400
         data["score"] = [sum([x[0] for x in data["partial_score"]]), sum([x[1] for x in data["partial_score"]])]
         GAMES.append(data)
         return jsonify({"status": "OK"}), 201

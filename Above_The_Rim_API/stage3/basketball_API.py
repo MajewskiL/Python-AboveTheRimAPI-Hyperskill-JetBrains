@@ -19,6 +19,7 @@ def home():
     <p>/api/v1/games POST to add a game</p>
     ''', 200
 
+
 @app.route('/api/v1/teams')
 def teams():
     global TEAMS
@@ -32,11 +33,16 @@ def games():
     if method == "GET":
         if len(GAMES) == 0:
             return '', 204
-        return jsonify(GAMES), 200
+        print(GAMES)
+        return_games = []
+        for g in GAMES:
+            return_games.append({TEAMS[g["home_team"]]["name"]: g["score"][0], TEAMS[g["visiting_team"]]["name"]: g["score"][1]})
+        print(return_games)
+        return jsonify(return_games), 200
     else:
         data = request.get_json()
         if any([data["home_team"] not in TEAMS, data["visiting_team"] not in TEAMS]):
-            return jsonify({"error": "Wrong team name."})
+            return jsonify({"error": "Wrong team name."}), 400
         GAMES.append(data)
         return jsonify({"status": "OK"}), 201
 

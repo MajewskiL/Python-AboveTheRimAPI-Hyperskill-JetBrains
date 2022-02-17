@@ -59,10 +59,14 @@ def games():
         return jsonify(games), 200
     else:
         data = request.get_json()
+
         if any([keys not in ("home_team", "visiting_team", "score") for keys, values in data.items()]):
             return jsonify({"error": "Wrong keys in JSON."}), 400
         if any([data["home_team"] not in TEAMS, data["visiting_team"] not in TEAMS]):
             return jsonify({"error": "Wrong team name."}), 400
+        sh = np.array(data["score"]).shape
+        if len(sh) != 1 or sh[0] != 2:
+            return jsonify({"error": "Wrong score."}), 400
         data["partial_score"] = []
         GAMES.append(data)
         return jsonify({"status": "OK"}), 201
@@ -75,7 +79,19 @@ def games2():
     if method == "GET":
         if len(GAMES) == 0:
             return '', 204
-        return jsonify(GAMES), 200
+        return_games = []
+        for g in GAMES:
+            i = 0
+            scores = {}
+            for s in g["partial_score"]:
+                if i < 4:
+                    scores[f"Q{i % 4 + 1}"] = s
+                else:
+                    scores[f"OT{i % 4 + 1}"] = s
+                i += 1
+            return_games.append({TEAMS[g["home_team"]]["name"]: g["score"][0], TEAMS[g["visiting_team"]]["name"]: g["score"][1],
+                                "scores": scores})
+        return jsonify(return_games), 200
     else:
         data = request.get_json()
         if any([keys not in ("home_team", "visiting_team", "partial_score") for keys, values in data.items()]):

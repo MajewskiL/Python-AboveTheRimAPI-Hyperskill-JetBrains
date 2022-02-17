@@ -53,10 +53,10 @@ def games():
     if method == "GET":
         if len(GAMES) == 0:
             return '', 204
-        return_games = []
-        for g in GAMES:
-            return_games.append({TEAMS[g["home_team"]]["name"]: g["score"][0], TEAMS[g["visiting_team"]]["name"]: g["score"][1]})
-        return jsonify(return_games), 200
+        games = []
+        for game in GAMES:
+            games.append({"home_team": game["home_team"], "visiting_team": game["visiting_team"], "score": game["score"]})
+        return jsonify(games), 200
     else:
         data = request.get_json()
         if any([data["home_team"] not in TEAMS, data["visiting_team"] not in TEAMS]):
@@ -75,7 +75,17 @@ def games2():
             return '', 204
         return_games = []
         for g in GAMES:
-            return_games.append({TEAMS[g["home_team"]]["name"]: g["score"][0], TEAMS[g["visiting_team"]]["name"]: g["score"][1]})
+            i = 0
+            scores = {}
+            print(g["partial_score"])
+            for s in g["partial_score"]:
+                if i < 4:
+                    scores[f"Q{i % 4 + 1}"] = s
+                else:
+                    scores[f"OT{i % 4 + 1}"] = s
+                i += 1
+            return_games.append({TEAMS[g["home_team"]]["name"]: g["score"][0], TEAMS[g["visiting_team"]]["name"]: g["score"][1],
+                                "scores": scores})
         return jsonify(return_games), 200
     else:
         data = request.get_json()

@@ -46,9 +46,11 @@ def games():
         GAMES.append(data)
         return jsonify({"status": "OK"}), 201
 
+
 @app.errorhandler(404)
 def error(e):
-    return jsonify({"error": "Wrong address."}), 404
+    return jsonify({"success": False,
+                    "error": "Wrong address."}), 404
 
 
 app.run()

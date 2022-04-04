@@ -30,6 +30,8 @@ def games():
         return '', 204
 
 
+
+
 @app.errorhandler(404)
 def error(e):
     return jsonify({"success": False,

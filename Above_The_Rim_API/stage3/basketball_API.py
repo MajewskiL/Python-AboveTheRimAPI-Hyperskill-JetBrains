@@ -47,6 +47,7 @@ def games():
         return jsonify({"status": "OK"}), 201
 
 
+
 @app.errorhandler(404)
 def error(e):
     return jsonify({"success": False,

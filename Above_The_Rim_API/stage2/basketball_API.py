@@ -1,43 +1,90 @@
-from flask import Flask, request, jsonify
-
+from flask import Flask, request
+import sys
+from flask import jsonify
 app = Flask(__name__)
-app.config["DEBUG"] = True
+from flask_sqlalchemy import SQLAlchemy
 
-TEAMS = {"PRE": {"name": "Prague Eagles"},
-         "PTK": {"name": "Petersburg Kings"},
-         "SPW": {"name": "Sitno Wolves"}}
-GAMES = []
+app.config.update(
+    {'SQLALCHEMY_DATABASE_URI': f'sqlite:///db.sqlite3'}
+)
+
+db = SQLAlchemy(app)
+
+class TeamModel(db.Model):
+    __tablename__ = "teams"
+    id = db.Column(db.Integer, primary_key=True)
+    shortcut = db.Column(db.String(3))
+    name = db.Column(db.String(50), nullable=False)
+
+
+db.create_all()
+
+
+def serialize_model(datas: TeamModel):
+    out = {}
+    for data in datas:
+        out[data.shortcut] = data.name
+    return out
+
+@app.route('/api/v1/teams', methods=["GET", "POST"])
+def teams():
+    if request.method == "GET":
+        teams = TeamModel.query.all()
+        return jsonify({"success": True, "data": serialize_model(teams)}), 200
+    else:
+        data = request.get_json()
+        new = TeamModel(shortcut=data["shortcut"], name=data["name"])
+        db.session.add(new)
+        db.session.commit()
+        return jsonify({"success": True, "data": "Team added"}), 201
+
+
+# GET teams {"success": True, "data": TEAMS} 200
+# POST teams {"success": True, "data": "Team was added."} 201
+
+
 
 @app.route('/')
 def home():
     return '''
     <h1>Welcome to the "Above the Rim" API!</h1>
     <p>/api/v1/teams GET all teams</p>
-    <p>/api/v1/games GET all games</p>
+    <p>/api/v1/teams POST add team</p>
+    <p>/api/v1/team/<name> GET team <name></p>
     ''', 200
-
-
-@app.route('/api/v1/teams')
-def teams():
-    global TEAMS
-    return jsonify(TEAMS), 200
-
-
-@app.route('/api/v1/games')
-def games():
-    global TEAMS
-    if len(GAMES) == 0:
-        return '', 204
-
-
 
 
 @app.errorhandler(404)
 def error(e):
     return jsonify({"success": False,
-                    "error": "Wrong address."}), 404
+                    "error": "Wrong address"}), 404
 
 
-app.run()
+# don't change the following way to run flask:
+if __name__ == '__main__':
+    if len(sys.argv) > 1:
+        arg_host, arg_port = sys.argv[1].split(':')
+        app.run(host=arg_host, port=arg_port)
+    else:
+        app.run(debug=True)
 
 
+
+#  TEST NAJPIERW PUTSEJ BAZY I BLAD 400 DOPIERO POTEM ZAPELNIAMY
+
+'''
+
+@app.route('/api/v1/team/<string:num>')
+def team(num: int):
+    return jsonify({"success": True,
+                    "data": num}), 200
+@app.route('/api/v1/games')  # ONE TEAM!!!!!!!!!!!!!!!!!!!!!!!
+def games(team_name: str):
+    global GAMES
+    if len(GAMES) == 0:
+        return jsonify({"success": False,
+                        "error": "No data"}), 400
+    else:
+        return jsonify({"success": True,
+                        "error": GAMES}), 200
+'''

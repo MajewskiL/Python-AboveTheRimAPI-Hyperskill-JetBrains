@@ -20,7 +20,7 @@ class TeamModel(db.Model):
 db.create_all()
 
 
-def serialize_model(datas: TeamModel):
+def serialize_team_model(datas: TeamModel):
     out = {}
     for data in datas:
         out[data.shortcut] = data.name
@@ -30,7 +30,7 @@ def serialize_model(datas: TeamModel):
 def teams():
     if request.method == "GET":
         teams = TeamModel.query.all()
-        return jsonify({"success": True, "data": serialize_model(teams)}), 200
+        return jsonify({"success": True, "data": serialize_team_model(teams)}), 200
     else:
         data = request.get_json()
         new = TeamModel(shortcut=data["shortcut"], name=data["name"])
@@ -41,7 +41,6 @@ def teams():
 
 # GET teams {"success": True, "data": TEAMS} 200
 # POST teams {"success": True, "data": "Team was added."} 201
-
 
 
 @app.route('/')
@@ -68,23 +67,3 @@ if __name__ == '__main__':
     else:
         app.run(debug=True)
 
-
-
-#  TEST NAJPIERW PUTSEJ BAZY I BLAD 400 DOPIERO POTEM ZAPELNIAMY
-
-'''
-
-@app.route('/api/v1/team/<string:num>')
-def team(num: int):
-    return jsonify({"success": True,
-                    "data": num}), 200
-@app.route('/api/v1/games')  # ONE TEAM!!!!!!!!!!!!!!!!!!!!!!!
-def games(team_name: str):
-    global GAMES
-    if len(GAMES) == 0:
-        return jsonify({"success": False,
-                        "error": "No data"}), 400
-    else:
-        return jsonify({"success": True,
-                        "error": GAMES}), 200
-'''

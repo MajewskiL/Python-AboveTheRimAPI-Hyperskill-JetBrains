@@ -26,6 +26,7 @@ def serialize_team_model(datas: TeamModel):
         out[data.shortcut] = data.name
     return out
 
+
 @app.route('/api/v1/teams', methods=["GET", "POST"])
 def teams():
     if request.method == "GET":

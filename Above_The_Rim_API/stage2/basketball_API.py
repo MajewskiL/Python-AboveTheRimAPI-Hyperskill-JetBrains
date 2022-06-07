@@ -1,14 +1,15 @@
-from flask import Flask, request
-import sys
-from flask import jsonify
-app = Flask(__name__)
+from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
+import sys
+
+app = Flask(__name__)
 
 app.config.update(
     {'SQLALCHEMY_DATABASE_URI': f'sqlite:///db.sqlite3'}
 )
 
 db = SQLAlchemy(app)
+
 
 class TeamModel(db.Model):
     __tablename__ = "teams"

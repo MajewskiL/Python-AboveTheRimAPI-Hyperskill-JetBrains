@@ -14,7 +14,7 @@ db = SQLAlchemy(app)
 class TeamModel(db.Model):
     __tablename__ = "teams"
     id = db.Column(db.Integer, primary_key=True)
-    shortcut = db.Column(db.String(3))
+    short = db.Column(db.String(3), nullable=False)
     name = db.Column(db.String(50), nullable=False)
 
 
@@ -24,7 +24,7 @@ db.create_all()
 def serialize_team_model(datas: TeamModel):
     out = {}
     for data in datas:
-        out[data.shortcut] = data.name
+        out[data.short] = data.name
     return out
 
 
@@ -35,7 +35,7 @@ def teams():
         return jsonify({"success": True, "data": serialize_team_model(teams)}), 200
     else:
         data = request.get_json()
-        new = TeamModel(shortcut=data["shortcut"], name=data["name"])
+        new = TeamModel(short=data["short"], name=data["name"])
         db.session.add(new)
         db.session.commit()
         return jsonify({"success": True, "data": "Team added"}), 201
@@ -51,7 +51,6 @@ def home():
     <h1>Welcome to the "Above the Rim" API!</h1>
     <p>/api/v1/teams GET all teams</p>
     <p>/api/v1/teams POST add team</p>
-    <p>/api/v1/team/<name> GET team <name></p>
     ''', 200
 
 

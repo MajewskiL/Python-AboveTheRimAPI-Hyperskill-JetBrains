@@ -16,7 +16,7 @@ db = SQLAlchemy(app)
 class TeamModel(db.Model):
     __tablename__ = "teams"
     id = db.Column(db.Integer, primary_key=True)
-    shortcut = db.Column(db.String(3))
+    short = db.Column(db.String(3))
     name = db.Column(db.String(50), nullable=False)
 
 
@@ -44,15 +44,15 @@ db.create_all()
 def serialize_team_model(datas: TeamModel):
     out = {}
     for data in datas:
-        out[data.shortcut] = data.name
+        out[data.short] = data.name
     return out
 
 
 def serialize_game_model(datas: GameModel, mode=""):
     out = {}
     for data in datas:
-        h_team = TeamModel.query.filter_by(shortcut=data.home_team).first()
-        v_team = TeamModel.query.filter_by(shortcut=data.visiting_team).first()
+        h_team = TeamModel.query.filter_by(short=data.home_team).first()
+        v_team = TeamModel.query.filter_by(short=data.visiting_team).first()
         out[data.id] = f"{h_team.name} {data.home_team_score}:{data.visiting_team_score} {v_team.name}"
         if mode == "q":
             game = QuartersModel.query.filter_by(game_id=data.id).first()
@@ -70,13 +70,13 @@ def teams():
         return jsonify({"success": True, "data": serialize_team_model(teams)}), 200
     else:
         data = request.get_json()
-        if re.match("^([A-Z]{3})$", data["shortcut"]):
-            new = TeamModel(shortcut=data["shortcut"], name=data["name"])
+        if re.match("^([A-Z]{3})$", data["short"]):
+            new = TeamModel(short=data["short"], name=data["name"])
             db.session.add(new)
             db.session.commit()
             return jsonify({"success": True, "data": "Team added"}), 201
         else:
-            return jsonify({"success": False, "data": "Wrong shortcut format"}), 400
+            return jsonify({"success": False, "data": "Wrong short format"}), 400
 
 
 @app.route('/api/v1/games', methods=["GET", "POST"])
@@ -86,7 +86,7 @@ def quarters():
         return jsonify({"success": True, "data": serialize_game_model(games)}), 200
     else:
         data = request.get_json()
-        if TeamModel.query.filter_by(shortcut=data["visiting_team"]).first() and TeamModel.query.filter_by(shortcut=data["home_team"]).first():
+        if TeamModel.query.filter_by(short=data["visiting_team"]).first() and TeamModel.query.filter_by(short=data["home_team"]).first():
             new = GameModel(home_team=data["home_team"],
                             visiting_team=data["visiting_team"],
                             home_team_score=data["home_team_score"],
@@ -95,7 +95,7 @@ def quarters():
             db.session.commit()
             return jsonify({"success": True, "data": "Game added"}), 201
         else:
-            return jsonify({"success": False, "data": "Wrong team shortcut"}), 400
+            return jsonify({"success": False, "data": "Wrong team short"}), 400
 
 
 @app.route('/api/v2/games', methods=["GET", "POST"])
@@ -105,14 +105,14 @@ def games():
         return jsonify({"success": True, "data": serialize_game_model(games, "q")}), 200
     else:
         data = request.get_json()
-        if TeamModel.query.filter_by(shortcut=data["visiting_team"]).first() and TeamModel.query.filter_by(shortcut=data["home_team"]).first():
+        if TeamModel.query.filter_by(short=data["visiting_team"]).first() and TeamModel.query.filter_by(short=data["home_team"]).first():
             new = GameModel(home_team=data["home_team"],
                             visiting_team=data["visiting_team"])
             db.session.add(new)
             db.session.commit()
             return jsonify({"success": True, "data": new.id}), 201
         else:
-            return jsonify({"success": False, "data": "Wrong team shortcut"}), 400
+            return jsonify({"success": False, "data": "Wrong team short"}), 400
 
 
 @app.route('/api/v2/games', methods=["PUT"])
@@ -141,14 +141,14 @@ def add_quarter():
 
 @app.route('/api/v1/team/<name>')
 def team(name):
-    team = TeamModel.query.filter_by(shortcut=name).first()
+    team = TeamModel.query.filter_by(short=name).first()
     if team:
-        all = db.engine.execute(f"SELECT COUNT (*) FROM games WHERE (home_team = '{team.shortcut}' or visiting_team = '{team.shortcut}');")
-        win = db.engine.execute(f"SELECT COUNT (*) FROM games WHERE (home_team = '{team.shortcut}' and home_team_score > visiting_team_score) "
-                                f"or (visiting_team = '{team.shortcut}' and home_team_score < visiting_team_score);")
+        all = db.engine.execute(f"SELECT COUNT (*) FROM games WHERE (home_team = '{team.short}' or visiting_team = '{team.short}');")
+        win = db.engine.execute(f"SELECT COUNT (*) FROM games WHERE (home_team = '{team.short}' and home_team_score > visiting_team_score) "
+                                f"or (visiting_team = '{team.short}' and home_team_score < visiting_team_score);")
         all = all.first()[0]
         win = win.first()[0]
-        return jsonify({"success": True, "data": {"shortcut": team.shortcut, "name": team.name, "win": win, "lost": all - win}}), 200
+        return jsonify({"success": True, "data": {"short": team.short, "name": team.name, "win": win, "lost": all - win}}), 200
     else:
         return jsonify({"success": False, "data": f"There is no team {name}"}), 400
 
@@ -163,7 +163,7 @@ def team(name):
 # POST teams {"success": True, "data": "Team was added."} 201
 # POST teams {"success": False, "data": "Wrong data format or empty required field."} 400
 
-# GET team/<name> {"success": True, "data": {name: , shortcut: , win: , lost: }}, 200
+# GET team/<name> {"success": True, "data": {name: , short: , win: , lost: }}, 200
 # GET team/<name> {"success": False, "data": "There is no team {name}"}, 400
 
 

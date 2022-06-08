@@ -15,7 +15,7 @@ db = SQLAlchemy(app)
 class ReModel(db.Model):
     __tablename__ = "teams"
     id = db.Column(db.Integer, primary_key=True)
-    shortcut = db.Column(db.String(3))
+    short = db.Column(db.String(3))
     name = db.Column(db.String(50), nullable=False)
 
 

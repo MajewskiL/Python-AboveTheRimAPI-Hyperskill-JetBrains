@@ -86,6 +86,8 @@ def quarters():
         return jsonify({"success": True, "data": serialize_game_model(games)}), 200
     else:
         data = request.get_json()
+        if any([d not in [da for da in data.keys()] for d in ["visiting_team", "home_team", "home_team_score", "visiting_team_score"]]):
+            return jsonify({"success": False, "data": "All fields are required"}), 400
         if TeamModel.query.filter_by(short=data["visiting_team"]).first() and TeamModel.query.filter_by(short=data["home_team"]).first():
             new = GameModel(home_team=data["home_team"],
                             visiting_team=data["visiting_team"],
@@ -105,6 +107,8 @@ def games():
         return jsonify({"success": True, "data": serialize_game_model(games, "q")}), 200
     else:
         data = request.get_json()
+        if any([d not in [da for da in data.keys()] for d in ["visiting_team", "home_team", "home_team_score", "visiting_team_score"]]):
+            return jsonify({"success": False, "data": "All fields are required"}), 400
         if TeamModel.query.filter_by(short=data["visiting_team"]).first() and TeamModel.query.filter_by(short=data["home_team"]).first():
             new = GameModel(home_team=data["home_team"],
                             visiting_team=data["visiting_team"])
@@ -157,8 +161,8 @@ def team(name):
 
 # GET teams {"success": True, "data": TEAMS} 200
 # POST teams {"success": True, "data": "Team was added."} 201
-# POST teams {"success": False, "data": "Wrong data format or empty required field."} 400
 
+# POST teams {"success": False, "data": "All fields are required"} 400
 # GET games {"success": True, "data": TEAMS} 200
 # POST teams {"success": True, "data": "Team was added."} 201
 # POST teams {"success": False, "data": "Wrong data format or empty required field."} 400

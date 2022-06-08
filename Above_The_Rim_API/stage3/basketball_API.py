@@ -44,7 +44,6 @@ def serialize_game_model(datas: GameModel):
     for data in datas:
         h_team = TeamModel.query.filter_by(short=data.home_team).first()
         v_team = TeamModel.query.filter_by(short=data.visiting_team).first()
-        print("HHHHH", data.home_team, data.visiting_team)
         out[data.id] = f"{h_team.name} {data.home_team_score}:{data.visiting_team_score} {v_team.name}"
     return out
 
@@ -72,6 +71,9 @@ def games():
         return jsonify({"success": True, "data": serialize_game_model(games)}), 200
     else:
         data = request.get_json()
+        if any([d not in [da for da in data.keys()] for d in ["visiting_team", "home_team", "home_team_score", "visiting_team_score"]]):
+            return jsonify({"success": False, "data": "All fields are required"}), 400
+
         if TeamModel.query.filter_by(short=data["visiting_team"]).first() and TeamModel.query.filter_by(short=data["home_team"]).first():
             new = GameModel(home_team=data["home_team"],
                             visiting_team=data["visiting_team"],
@@ -85,12 +87,14 @@ def games():
 
 
 # GET teams {"success": True, "data": TEAMS} 200
-# POST teams {"success": True, "data": "Team was added."} 201
-# POST teams {"success": False, "data": "Wrong data format or empty required field."} 400
+# POST teams {"success": True, "data": "Team was added"} 201
 
+# POST teams {"success": False, "data": "All fields are required"} 400
+# POST teams {"success": False, "data": "Wrong data format or empty required field"} 400
 # GET games {"success": True, "data": TEAMS} 200
-# POST teams {"success": True, "data": "Team was added."} 201
-# POST teams {"success": False, "data": "Wrong data format or empty required field."} 400
+# POST teams {"success": True, "data": "Team was added"} 201
+# POST teams {"success": False, "data": "Wrong data format or empty required field"} 400
+
 
 
 @app.route('/')
@@ -117,23 +121,3 @@ if __name__ == '__main__':
     else:
         app.run(debug=True)
 
-
-
-#  TEST NAJPIERW PUTSEJ BAZY I BLAD 400 DOPIERO POTEM ZAPELNIAMY
-
-'''
-
-@app.route('/api/v1/team/<string:num>')
-def team(num: int):
-    return jsonify({"success": True,
-                    "data": num}), 200
-@app.route('/api/v1/games')  # ONE TEAM!!!!!!!!!!!!!!!!!!!!!!!
-def games(team_name: str):
-    global GAMES
-    if len(GAMES) == 0:
-        return jsonify({"success": False,
-                        "error": "No data"}), 400
-    else:
-        return jsonify({"success": True,
-                        "error": GAMES}), 200
-'''

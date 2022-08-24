@@ -115,6 +115,9 @@ class SQLite3Test:
 class FlaskProjectTest(FlaskTest):
     source = 'basketball_API'
 
+    def __init__(self, source_name: str = ''):
+        super().__init__(source_name)
+
     def check_json(self, output_dict, expect_dict):
         if len(output_dict) != len(expect_dict):
             return True
@@ -160,14 +163,14 @@ class FlaskProjectTest(FlaskTest):
         return CheckResult.correct()
 
     @dynamic_test(order=2)
-    def test1(self):
+    def test2(self):
         ExitHandler.revert_exit()
         print("Checking not existing page.")
         asyncio.get_event_loop().run_until_complete(self.test_random_page())
         return CheckResult.correct()
 
     @dynamic_test(order=2)
-    def test1(self):
+    def test3(self):
         ExitHandler.revert_exit()
         db_name = "db.sqlite3"
         table = "teams"

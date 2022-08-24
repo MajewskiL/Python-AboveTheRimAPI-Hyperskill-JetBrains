@@ -38,7 +38,7 @@ class QuartersModel(db.Model):
 
 db.create_all()
 
-db.create_all()
+#  db.create_all()
 
 
 def serialize_team_model(datas: TeamModel):
@@ -107,8 +107,6 @@ def games():
         return jsonify({"success": True, "data": serialize_game_model(games, "q")}), 200
     else:
         data = request.get_json()
-        if any([d not in [da for da in data.keys()] for d in ["visiting_team", "home_team", "home_team_score", "visiting_team_score"]]):
-            return jsonify({"success": False, "data": "All fields are required"}), 400
         if TeamModel.query.filter_by(short=data["visiting_team"]).first() and TeamModel.query.filter_by(short=data["home_team"]).first():
             new = GameModel(home_team=data["home_team"],
                             visiting_team=data["visiting_team"])
@@ -157,19 +155,24 @@ def team(name):
         return jsonify({"success": False, "data": f"There is no team {name}"}), 400
 
 
-
-
+# Stage 2
 # GET teams {"success": True, "data": TEAMS} 200
-# POST teams {"success": True, "data": "Team was added."} 201
+# POST teams {"success": True, "data": "Team was added"} 201
 
+# Stage 3
 # POST teams {"success": False, "data": "All fields are required"} 400
-# GET games {"success": True, "data": TEAMS} 200
-# POST teams {"success": True, "data": "Team was added."} 201
-# POST teams {"success": False, "data": "Wrong data format or empty required field."} 400
+# POST teams {"success": False, "data": "Wrong data format or empty required field"} 400
+# POST teams {"success": True, "data": "Team was added"} 201
 
+# GET games {"success": True, "data": TEAMS} 200
+
+
+# Stage 4
 # GET team/<name> {"success": True, "data": {name: , short: , win: , lost: }}, 200
 # GET team/<name> {"success": False, "data": "There is no team {name}"}, 400
 
+# Stage 5
+# ????
 
 
 @app.route('/')
@@ -195,24 +198,3 @@ if __name__ == '__main__':
         app.run(host=arg_host, port=arg_port)
     else:
         app.run(debug=True)
-
-
-
-#  TEST NAJPIERW PUTSEJ BAZY I BLAD 400 DOPIERO POTEM ZAPELNIAMY
-
-'''
-
-@app.route('/api/v1/team/<string:num>')
-def team(num: int):
-    return jsonify({"success": True,
-                    "data": num}), 200
-@app.route('/api/v1/games')  # ONE TEAM!!!!!!!!!!!!!!!!!!!!!!!
-def games(team_name: str):
-    global GAMES
-    if len(GAMES) == 0:
-        return jsonify({"success": False,
-                        "error": "No data"}), 400
-    else:
-        return jsonify({"success": True,
-                        "error": GAMES}), 200
-'''

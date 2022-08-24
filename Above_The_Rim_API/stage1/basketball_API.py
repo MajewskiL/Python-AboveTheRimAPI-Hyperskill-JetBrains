@@ -1,16 +1,15 @@
 from flask import Flask
 import sys
 from flask import jsonify
-app = Flask(__name__)
-
-
 from flask_sqlalchemy import SQLAlchemy
+app = Flask(__name__)
 
 app.config.update(
     {'SQLALCHEMY_DATABASE_URI': f'sqlite:///db.sqlite3'}
 )
 
 db = SQLAlchemy(app)
+
 
 class ReModel(db.Model):
     __tablename__ = "teams"
@@ -25,14 +24,14 @@ db.create_all()
 @app.route('/')
 def home():
     return '''
-    <h1>Welcome to the "Above the Rim" API!</h1>
+    <H1>Welcome to the "Above the Rim" API!</h1>
     ''', 200
 
 
 @app.errorhandler(404)
 def error(e):
     return jsonify({"success": False,
-                    "error": "Wrong address"}), 404
+                    "data": "Wrong address"}), 404
 
 
 # don't change the following way to run flask:

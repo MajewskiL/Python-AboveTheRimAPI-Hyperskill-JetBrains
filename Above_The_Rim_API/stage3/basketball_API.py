@@ -47,7 +47,7 @@ def serialize_game_model(datas: GameModel):
         out[data.id] = f"{h_team.name} {data.home_team_score}:{data.visiting_team_score} {v_team.name}"
     return out
 
-
+#skopiować
 @app.route('/api/v1/teams', methods=["GET", "POST"])
 def teams():
     if request.method == "GET":
@@ -55,13 +55,13 @@ def teams():
         return jsonify({"success": True, "data": serialize_team_model(teams)}), 200
     else:
         data = request.get_json()
-        if re.match("^([A-Z]{3})$", data["short"]):
+        if re.match("^([A-Z]{3})$", data["short"]) and len(data["name"]) != 0:
             new = TeamModel(short=data["short"], name=data["name"])
             db.session.add(new)
             db.session.commit()
             return jsonify({"success": True, "data": "Team added"}), 201
         else:
-            return jsonify({"success": False, "data": "Wrong short format"}), 400
+            return jsonify({"success": False, "data": "Wrong short format or empty name"}), 400
 
 
 @app.route('/api/v1/games', methods=["GET", "POST"])
@@ -72,7 +72,7 @@ def games():
     else:
         data = request.get_json()
         if any([d not in [da for da in data.keys()] for d in ["visiting_team", "home_team", "home_team_score", "visiting_team_score"]]):
-            return jsonify({"success": False, "data": "All fields are required"}), 400
+            return jsonify({"success": False, "data": "All keys are required in JSON"}), 400
 
         if TeamModel.query.filter_by(short=data["visiting_team"]).first() and TeamModel.query.filter_by(short=data["home_team"]).first():
             new = GameModel(home_team=data["home_team"],
@@ -86,24 +86,31 @@ def games():
             return jsonify({"success": False, "data": "Wrong team short"}), 400
 
 
+# Stage 2
 # GET teams {"success": True, "data": TEAMS} 200
 # POST teams {"success": True, "data": "Team was added"} 201
 
-# POST teams {"success": False, "data": "All fields are required"} 400
-# POST teams {"success": False, "data": "Wrong data format or empty required field"} 400
+# Stage 3
 # GET games {"success": True, "data": TEAMS} 200
-# POST teams {"success": True, "data": "Team was added"} 201
-# POST teams {"success": False, "data": "Wrong data format or empty required field"} 400
+# POST games {"success": False, "data": "Wrong team short"} 400
+# POST games {"success": True, "data": "Game added"} 201
 
 
+# Stage 4
+# POST teams {"success": False, "data": "Wrong short format or empty name"} 400
+# GET team/<name> {"success": True, "data": {name: , short: , win: , lost: }}, 200
+# GET team/<name> {"success": False, "data": "There is no team {name}"}, 400
 
+
+#skopiować
 @app.route('/')
 def home():
     return '''
     <h1>Welcome to the "Above the Rim" API!</h1>
     <p>/api/v1/teams GET all teams</p>
     <p>/api/v1/teams POST add team</p>
-    <p>/api/v1/team/<name> GET team <name></p>
+    <p>/api/v1/games GET all games</p>
+    <p>/api/v1/games POST add game</p>    
     ''', 200
 
 

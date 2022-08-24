@@ -14,8 +14,8 @@ db = SQLAlchemy(app)
 class ReModel(db.Model):
     __tablename__ = "teams"
     id = db.Column(db.Integer, primary_key=True)
-    short = db.Column(db.String(3))
-    name = db.Column(db.String(50), nullable=False)
+    short = db.Column(db.String(3), unique=True, nullable=False)
+    name = db.Column(db.String(50), unique=True, nullable=False)
 
 
 db.create_all()

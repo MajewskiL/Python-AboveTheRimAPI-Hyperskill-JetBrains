@@ -38,7 +38,7 @@ def teams():
         new = TeamModel(short=data["short"], name=data["name"])
         db.session.add(new)
         db.session.commit()
-        return jsonify({"success": True, "data": "Team added"}), 201
+        return jsonify({"success": True, "data": "Team has been added"}), 201
 
 
 # GET teams {"success": True, "data": TEAMS} 200
@@ -57,7 +57,7 @@ def home():
 @app.errorhandler(404)
 def error(e):
     return jsonify({"success": False,
-                    "error": "Wrong address"}), 404
+                    "data": "Wrong address"}), 404
 
 
 # don't change the following way to run flask:

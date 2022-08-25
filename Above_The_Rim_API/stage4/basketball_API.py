@@ -23,8 +23,8 @@ class TeamModel(db.Model):
 class GameModel(db.Model):
     __tablename__ = "games"
     id = db.Column(db.Integer, primary_key=True)
-    home_team = db.Column(db.String(3))
-    visiting_team = db.Column(db.String(3))
+    home_team = db.Column(db.Integer, db.ForeignKey('teams.id'))
+    visiting_team = db.Column(db.Integer, db.ForeignKey('teams.id'))
     home_team_score = db.Column(db.Integer)
     visiting_team_score = db.Column(db.Integer)
 
@@ -61,7 +61,7 @@ def teams():
             new = TeamModel(short=data["short"], name=data["name"])
             db.session.add(new)
             db.session.commit()
-            return jsonify({"success": True, "data": "Team added"}), 201
+            return jsonify({"success": True, "data": "Team has been added"}), 201
         else:
             return jsonify({"success": False, "data": "Wrong short format"}), 400
 
@@ -82,7 +82,7 @@ def games():
                             visiting_team_score=data["visiting_team_score"])
             db.session.add(new)
             db.session.commit()
-            return jsonify({"success": True, "data": "Game added"}), 201
+            return jsonify({"success": True, "data": "Game has been added"}), 201
         else:
             return jsonify({"success": False, "data": "Wrong team short"}), 400
 
@@ -122,14 +122,16 @@ def home():
     <h1>Welcome to the "Above the Rim" API!</h1>
     <p>/api/v1/teams GET all teams</p>
     <p>/api/v1/teams POST add team</p>
-    <p>/api/v1/team/<name> GET team <name></p>
+    <p>/api/v1/games GET all games</p>
+    <p>/api/v1/games POST add game</p>    
+    <p>/api/v1/team/%SHORT% GET a team statistics</p>
     ''', 200
 
 
 @app.errorhandler(404)
 def error(e):
     return jsonify({"success": False,
-                    "error": "Wrong address"}), 404
+                    "data": "Wrong address"}), 404
 
 
 # don't change the following way to run flask:

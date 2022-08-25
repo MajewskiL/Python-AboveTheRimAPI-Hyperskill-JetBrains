@@ -210,7 +210,7 @@ class FlaskProjectTest(FlaskTest):
         database.connect()
         database.is_file_exist()
         tables = {"teams": {"id": ["PK"], "short": ["NN","UN"], "name": ["NN","UN"]},
-                  "games": {"id": ["PK"], "home_team": ["NN"], "visiting_team": ["NN"], "home_team_score": [], "visiting_team_score": []}}
+                  "games": {"id": ["PK"], "home_team": ["FK"], "visiting_team": ["FK"], "home_team_score": [], "visiting_team_score": []}}
         for table, columns in tables.items():
             database.is_table_exist(table)
             database.is_column_exist(table, [column for column in columns.keys()])
@@ -218,9 +218,10 @@ class FlaskProjectTest(FlaskTest):
                 for param in columns[column]:
                     if param == "UN":
                         database.is_unique(table, column)
-                    if param != "UN":
+                    if param not in ["UN", "FK"]:
                         database.table_info(table, column, param)
-
+                    if param == "FK":
+                        database.is_foreign_key(table, column)
         for table in tables:
             database.run_query(f"DELETE FROM {table}")
 
@@ -239,6 +240,7 @@ class FlaskProjectTest(FlaskTest):
     @dynamic_test(order=5)
     def test5(self):
         ExitHandler.revert_exit()
+        print("POST method at /api/v1/teams")
         input_post = [{"short": "PRW", "name": "Prague Wizards"}, {"short": "CHG", "name": "Chicago Gulls"}]
         expected = {"data": "Team has been added", "success": True}
         for post in input_post:
@@ -248,8 +250,26 @@ class FlaskProjectTest(FlaskTest):
     @dynamic_test(order=6)
     def test6(self):
         ExitHandler.revert_exit()
+        print("GET method at /api/v1/teams")
         expected = {"success": True, "data": {"CHG": "Chicago Gulls", "PRW": "Prague Wizards"}}
         asyncio.get_event_loop().run_until_complete(self.test_get_method("/api/v1/teams", expected))
+        return CheckResult.correct()
+
+    @dynamic_test(order=7)
+    def test7(self):
+        ExitHandler.revert_exit()
+        print("POST method at /api/v1/games")
+        input_post = [{"home_team": "CHG", "visiting_team": "PRW", "home_team_score": 123, "visiting_team_score": 89}, {"home_team": "PRW", "visiting_team": "CHG", "home_team_score": 76, "visiting_team_score": 67}]
+        expected = {"data": "Game has been added", "success": True}
+        for post in input_post:
+            asyncio.get_event_loop().run_until_complete(self.test_post_method("/api/v1/games", post, expected))
+        return CheckResult.correct()
+
+    @dynamic_test(order=8)
+    def test8(self):
+        ExitHandler.revert_exit()
+        expected = {"success": True, "data": {"1": "Chicago Gulls 123:89 Prague Wizards", "2": "Prague Wizards 76:67 Chicago Gulls"}}
+        asyncio.get_event_loop().run_until_complete(self.test_get_method("/api/v1/games", expected))
         return CheckResult.correct()
 
 

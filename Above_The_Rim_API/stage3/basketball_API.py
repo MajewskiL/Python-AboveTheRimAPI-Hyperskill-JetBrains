@@ -23,8 +23,8 @@ class TeamModel(db.Model):
 class GameModel(db.Model):
     __tablename__ = "games"
     id = db.Column(db.Integer, primary_key=True)
-    home_team = db.Column(db.String(3), nullable=False)
-    visiting_team = db.Column(db.String(3), nullable=False)
+    home_team = db.Column(db.Integer, db.ForeignKey('teams.id'))
+    visiting_team = db.Column(db.Integer, db.ForeignKey('teams.id'))
     home_team_score = db.Column(db.Integer)
     visiting_team_score = db.Column(db.Integer)
 
@@ -42,12 +42,12 @@ def serialize_team_model(datas: TeamModel):
 def serialize_game_model(datas: GameModel):
     out = {}
     for data in datas:
-        h_team = TeamModel.query.filter_by(short=data.home_team).first()
-        v_team = TeamModel.query.filter_by(short=data.visiting_team).first()
+        h_team = TeamModel.query.filter_by(id=data.home_team).first()
+        v_team = TeamModel.query.filter_by(id=data.visiting_team).first()
         out[data.id] = f"{h_team.name} {data.home_team_score}:{data.visiting_team_score} {v_team.name}"
     return out
 
-#skopiować
+
 @app.route('/api/v1/teams', methods=["GET", "POST"])
 def teams():
     if request.method == "GET":
@@ -73,15 +73,16 @@ def games():
         data = request.get_json()
         if any([d not in [da for da in data.keys()] for d in ["visiting_team", "home_team", "home_team_score", "visiting_team_score"]]):
             return jsonify({"success": False, "data": "All keys are required in JSON"}), 400
-
-        if TeamModel.query.filter_by(short=data["visiting_team"]).first() and TeamModel.query.filter_by(short=data["home_team"]).first():
-            new = GameModel(home_team=data["home_team"],
-                            visiting_team=data["visiting_team"],
+        v_team = TeamModel.query.filter_by(short=data["visiting_team"]).first()
+        h_team = TeamModel.query.filter_by(short=data["home_team"]).first()
+        if v_team and h_team:
+            new = GameModel(home_team=h_team.id,
+                            visiting_team=v_team.id,
                             home_team_score=data["home_team_score"],
                             visiting_team_score=data["visiting_team_score"])
             db.session.add(new)
             db.session.commit()
-            return jsonify({"success": True, "data": "Game added"}), 201
+            return jsonify({"success": True, "data": "Game has been added"}), 201
         else:
             return jsonify({"success": False, "data": "Wrong team short"}), 400
 

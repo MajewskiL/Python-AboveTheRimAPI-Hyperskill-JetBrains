@@ -135,14 +135,15 @@ class FlaskProjectTest(FlaskTest):
         content = r.content.decode('UTF-8')
         if content.lower().count("<h1>") != 1 or content.lower().count("</h1>") != 1:
             raise WrongAnswer("There should be one tag <h1> and one tag </h1>.")
-        if content.lower().count("<p>") != 2 or content.lower().count("/p") != 2:
-            raise WrongAnswer("There should be two tags <p> and two tags </p>.")
+        p_tags = 4
+        if content.lower().count("<p>") != p_tags or content.lower().count("/p") != p_tags:
+            raise WrongAnswer(f"There should be {p_tags} tags <p> and {p_tags} tags </p>.")
         soup = BeautifulSoup(content, 'html.parser')
         list_all_h1 = soup.find_all('h1')
         if 'Welcome to the "Above the Rim" API!' not in list_all_h1[0].text:
             raise WrongAnswer('There is no welcome text inside the tag <h1>: Welcome to the "Above the Rim" API!')
         list_all_p = soup.find_all('p')
-        ps = ["/api/v1/teams GET all teams", "/api/v1/teams POST add team"]
+        ps = ["/api/v1/teams GET all teams", "/api/v1/teams POST add team", "/api/v1/games GET all games", "/api/v1/games POST add game"]
         if any([txt not in [l.text for l in list_all_p] for txt in ps]):
             raise WrongAnswer(f'There is some mistake in <p> tags!\nExpected:\n{sorted(ps)}\nFound:\n{sorted([txt.text for txt in list_all_p])}')
 
@@ -208,8 +209,8 @@ class FlaskProjectTest(FlaskTest):
         database = SQLite3Test(db_name)
         database.connect()
         database.is_file_exist()
-        tables = {"teams": {"id": ["PK"], "short": ["NN","UN"], "name": ["NN","UN"]}}
-
+        tables = {"teams": {"id": ["PK"], "short": ["NN","UN"], "name": ["NN","UN"]},
+                  "games": {"id": ["PK"], "home_team": ["NN"], "visiting_team": ["NN"], "home_team_score": [], "visiting_team_score": []}}
         for table, columns in tables.items():
             database.is_table_exist(table)
             database.is_column_exist(table, [column for column in columns.keys()])

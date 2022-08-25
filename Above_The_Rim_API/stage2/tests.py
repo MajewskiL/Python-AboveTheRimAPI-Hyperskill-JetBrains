@@ -41,7 +41,7 @@ class SQLite3Test:
             self.conn = sqlite3.connect(self.file_name)
             self.cursor = self.conn.cursor()
         except sqlite3.OperationalError as err:
-            raise WrongAnswer(f"DataBase {self.file_name} may be locked. An error was returned when trying to connect: {err}.")
+            raise WrongAnswer(f"DataBase '{self.file_name}' may be locked. An error was returned when trying to connect: {err}.")
 
     def close(self):
         try:
@@ -72,36 +72,36 @@ class SQLite3Test:
         lines = self.run_query(f"SELECT COUNT(*) FROM {name}").fetchone()[0]
         if lines != expected_lines:
             self.close()
-            raise WrongAnswer(f"Wrong number of records in table {name}. Expected {expected_lines}, found {lines}")
+            raise WrongAnswer(f"Wrong number of records in table '{name}'. Expected {expected_lines}, found {lines}")
 
     def is_column_exist(self, name, names):  # table name -> string, column names -> list of strings for all columns, or list with one string for one column
         lines = self.run_query(f'select * from {name}').description
         if len(names) != 1:
             if sorted(names) != sorted([line[0] for line in lines]):
                 self.close()
-                raise WrongAnswer(f"There is something wrong in table {name}. Found column names: {[line[0] for line in lines]}. Expected {names}'")
+                raise WrongAnswer(f"There is something wrong in table '{name}'. Found column names: {[line[0] for line in lines]}. Expected {names}")
         else:
             if not any([names[0] == c_name for c_name in [line[0] for line in lines]]):
                 self.close()
-                raise WrongAnswer(f"There is something wrong in table {name}. Found column names: {[line[0] for line in lines]}. Expected to find '{names[0]}'")
+                raise WrongAnswer(f"There is something wrong in table '{name}'. Found column names: {[line[0] for line in lines]}. Expected {names[0]}")
 
     def table_info(self, name, column, attribute):   # table name -> string, column name -> string, attr ("PK" Primary Key; "NN" Not null)
         lines = self.run_query(f"PRAGMA table_info({name})").fetchall()
         if column not in [line[1] for line in lines]:
-            raise WrongAnswer(f"There is no column {column}.")
+            raise WrongAnswer(f"There is no column '{column}'.")
         for line in lines:
             if attribute == "PK":
                 if line[1] == column and line[5] != 1:
                     self.close()
-                    raise WrongAnswer(f"There is no PRIMARY KEY parameter in {name} on column {column}.")
+                    raise WrongAnswer(f"There is no PRIMARY KEY parameter in '{name}' on column '{column}'.")
             elif attribute == "NN":
                 if line[1] == column and line[3] != 1:
-                    raise WrongAnswer(f"There is no NOT NULL parameter in {name} on column {column}.")
+                    raise WrongAnswer(f"There is no NOT NULL parameter in '{name}' on column '{column}'.")
 
     def is_unique(self, name, column):  # table name -> string, column name -> string
         lines = self.run_query(f"SELECT inf.name FROM pragma_index_list('{name}') as lst, pragma_index_info(lst.name) as inf WHERE lst.[unique] = 1;").fetchall()
         if not any([column in line for line in lines]):
-            raise WrongAnswer(f"There is no UNIQUE parameter in {name} on column {column}.")
+            raise WrongAnswer(f"There is no UNIQUE parameter in '{name}' on column '{column}'.")
         return True
 
     def is_foreign_key(self, name, column):  # table name -> string, column name -> string
@@ -117,14 +117,14 @@ class FlaskProjectTest(FlaskTest):
     def check_json(self, output_dict, expect_dict):
         #  print(type(output_dict), type(expect_dict))
         if len(output_dict) != len(expect_dict):
-            print("First condition")
+            #  print("First condition")
             return True
         for key in expect_dict.keys():
             if key not in output_dict.keys():
-                print("Second condition")
+                #  print("Second condition")
                 return True
             if expect_dict[key] != output_dict[key]:
-                print("Third condition")
+                #  print("Third condition")
                 return True
         return False
 
@@ -203,35 +203,34 @@ class FlaskProjectTest(FlaskTest):
     @dynamic_test(order=3)
     def test3(self):
         ExitHandler.revert_exit()
+        print("Checking database and deleting data.")
         db_name = "db.sqlite3"
-        table = "teams"
-        columns = ["id", "short", "name"]
-        print("Checking database.")
         database = SQLite3Test(db_name)
         database.connect()
         database.is_file_exist()
-        database.is_table_exist(table)
-        database.is_column_exist(table, columns)
-        database.table_info(table, columns[0], "PK")
-        database.table_info(table, columns[2], "NN")
-        database.table_info(table, columns[1], "NN")
-        database.is_unique(table, columns[2])
-        database.is_unique(table, columns[1])
+        tables = {"teams": {"id": ["PK"], "short": ["NN","UN"], "name": ["NN","UN"]}}
+
+        for table, columns in tables.items():
+            database.is_table_exist(table)
+            database.is_column_exist(table, [column for column in columns.keys()])
+            for column in columns.keys():
+                for param in columns[column]:
+                    if param == "UN":
+                        database.is_unique(table, column)
+                    if param != "UN":
+                        database.table_info(table, column, param)
+
+        for table in tables:
+            database.run_query(f"DELETE FROM {table}")
+
+        database.conn.commit()
         database.close()
         return CheckResult.correct()
 
     @dynamic_test(order=4)
     def test4(self):
         ExitHandler.revert_exit()
-        db_name = "db.sqlite3"
-        table = "teams"
         print("Checking GET without data.")
-        database = SQLite3Test(db_name)
-        database.connect()
-        database.run_query(f"DELETE FROM {table}")
-        database.conn.commit()
-        database.close()
-
         output = {"success": True, "data": {}}
         asyncio.get_event_loop().run_until_complete(self.test_get_method("/api/v1/teams", output))
         return CheckResult.correct()
@@ -239,17 +238,16 @@ class FlaskProjectTest(FlaskTest):
     @dynamic_test(order=5)
     def test5(self):
         ExitHandler.revert_exit()
-        input_post = {"short": "CHG", "name": "Chicago Gulls"}
+        input_post = [{"short": "PRW", "name": "Prague Wizards"}, {"short": "CHG", "name": "Chicago Gulls"}]
         expected = {"data": "Team has been added", "success": True}
-        asyncio.get_event_loop().run_until_complete(self.test_post_method("/api/v1/teams", input_post, expected))
-        input_post = {"short": "PRW", "name": "Prague Wizzards"}
-        asyncio.get_event_loop().run_until_complete(self.test_post_method("/api/v1/teams", input_post, expected))
+        for post in input_post:
+            asyncio.get_event_loop().run_until_complete(self.test_post_method("/api/v1/teams", post, expected))
         return CheckResult.correct()
 
     @dynamic_test(order=6)
     def test6(self):
         ExitHandler.revert_exit()
-        expected = {"success": True, "data": {"CHG": "Chicago Gulls", "PRW": "Prague Wizzards"}}
+        expected = {"success": True, "data": {"CHG": "Chicago Gulls", "PRW": "Prague Wizards"}}
         asyncio.get_event_loop().run_until_complete(self.test_get_method("/api/v1/teams", expected))
         return CheckResult.correct()
 

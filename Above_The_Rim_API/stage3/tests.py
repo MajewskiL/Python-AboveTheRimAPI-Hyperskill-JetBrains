@@ -174,10 +174,10 @@ class FlaskProjectTest(FlaskTest):
             raise WrongAnswer(f'Wrong JSON format. \nExpected\n{dict(sorted(expected.items()))}, \nFound:\n{dict(sorted(content.items()))}')
         return
 
-    async def test_post_method(self, api_address, input_post, expected):
+    async def test_post_method(self, api_address, input_post, expected, code, text):
         r = requests.post("/".join([self.get_url(), api_address]), json=input_post)
-        if r.status_code != 201:
-            raise WrongAnswer("Successful POST method should return code 201.")
+        if r.status_code != code:
+            raise WrongAnswer(f"{text} POST method should return code {code}.")
         content = r.content.decode('UTF-8')
         try:
             content = json.loads(content)
@@ -244,7 +244,7 @@ class FlaskProjectTest(FlaskTest):
         input_post = [{"short": "PRW", "name": "Prague Wizards"}, {"short": "CHG", "name": "Chicago Gulls"}]
         expected = {"data": "Team has been added", "success": True}
         for post in input_post:
-            asyncio.get_event_loop().run_until_complete(self.test_post_method("/api/v1/teams", post, expected))
+            asyncio.get_event_loop().run_until_complete(self.test_post_method("/api/v1/teams", post, expected, 201, "Successful"))
         return CheckResult.correct()
 
     @dynamic_test(order=6)
@@ -262,14 +262,25 @@ class FlaskProjectTest(FlaskTest):
         input_post = [{"home_team": "CHG", "visiting_team": "PRW", "home_team_score": 123, "visiting_team_score": 89}, {"home_team": "PRW", "visiting_team": "CHG", "home_team_score": 76, "visiting_team_score": 67}]
         expected = {"data": "Game has been added", "success": True}
         for post in input_post:
-            asyncio.get_event_loop().run_until_complete(self.test_post_method("/api/v1/games", post, expected))
+            asyncio.get_event_loop().run_until_complete(self.test_post_method("/api/v1/games", post, expected, 201, "Successful"))
         return CheckResult.correct()
 
     @dynamic_test(order=8)
     def test8(self):
         ExitHandler.revert_exit()
+        print("Proper GET method at /api/v1/games")
         expected = {"success": True, "data": {"1": "Chicago Gulls 123:89 Prague Wizards", "2": "Prague Wizards 76:67 Chicago Gulls"}}
         asyncio.get_event_loop().run_until_complete(self.test_get_method("/api/v1/games", expected))
+        return CheckResult.correct()
+
+    @dynamic_test(order=9)
+    def test9(self):
+        ExitHandler.revert_exit()
+        print("POST method at /api/v1/games with wrong team")
+        input_post = [{"home_team": "CHG", "visiting_team": "PRS", "home_team_score": 123, "visiting_team_score": 89}]
+        expected = {"data": "Wrong team short", "success": False}
+        for post in input_post:
+            asyncio.get_event_loop().run_until_complete(self.test_post_method("/api/v1/games", post, expected, 400, "Wrong"))
         return CheckResult.correct()
 
 

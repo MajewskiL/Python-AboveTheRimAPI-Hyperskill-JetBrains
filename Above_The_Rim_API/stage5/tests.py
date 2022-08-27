@@ -355,7 +355,7 @@ class FlaskProjectTest(FlaskTest):
     @dynamic_test(order=15)
     def test15(self):
         ExitHandler.revert_exit()
-        print("PUT method at /api/v2/games/%TEAMS.ID%.")
+        print("PUT method at /api/v2/games")
         input_post = [{"id": 3, "quarters": "12:20"}, {"id": 3, "quarters": "21:12"}]
         expected = {"data": "Score updated", "success": True}
         for post in input_post:
@@ -392,6 +392,35 @@ class FlaskProjectTest(FlaskTest):
             asyncio.get_event_loop().run_until_complete(self.test_put_method("/api/v2/games", post, expected, 400, "Wrong"))
         return CheckResult.correct()
 
+    @dynamic_test(order=19)
+    def test19(self):
+        ExitHandler.revert_exit()
+        print("PUT method at /api/v2/games")
+        input_post = [{"id": 3, "quarters": "5:12"}]
+        expected = {"data": "Score updated", "success": True}
+        for post in input_post:
+            asyncio.get_event_loop().run_until_complete(self.test_put_method("/api/v2/games", post, expected, 200, "Successful"))
+        return CheckResult.correct()
+
+    @dynamic_test(order=20)
+    def test20(self):
+        ExitHandler.revert_exit()
+        print("GET method at /api/v2/games.")
+        expected = {"success": True, "data": {"1": "Chicago Gulls 123:89 Prague Wizards",
+                                              "2": "Prague Wizards 76:67 Chicago Gulls",
+                                              "3": "Prague Wizards 38:44 Chicago Gulls (12:20,21:12,5:12)"}}
+        asyncio.get_event_loop().run_until_complete(self.test_get_method("/api/v2/games", expected, 200, "Successful"))
+        return CheckResult.correct()
+
+    @dynamic_test(order=21)
+    def test21(self):
+        ExitHandler.revert_exit()
+        print("GET method at /api/v1/games.")
+        expected = {"success": True, "data": {"1": "Chicago Gulls 123:89 Prague Wizards",
+                                              "2": "Prague Wizards 76:67 Chicago Gulls",
+                                              "3": "Prague Wizards 38:44 Chicago Gulls"}}
+        asyncio.get_event_loop().run_until_complete(self.test_get_method("/api/v1/games", expected, 200, "Successful"))
+        return CheckResult.correct()
 
 if __name__ == '__main__':
     FlaskProjectTest().run_tests()

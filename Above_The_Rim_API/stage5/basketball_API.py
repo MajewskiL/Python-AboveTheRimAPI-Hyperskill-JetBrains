@@ -181,7 +181,12 @@ def home():
     <h1>Welcome to the "Above the Rim" API!</h1>
     <p>/api/v1/teams GET all teams</p>
     <p>/api/v1/teams POST add team</p>
-    <p>/api/v1/team/<name> GET team <name></p>
+    <p>/api/v1/games GET all games</p>
+    <p>/api/v1/games POST add game</p>    
+    <p>/api/v1/team/%SHORT% GET a team statistics</p>
+    <p>/api/v2/games POST add game</p>
+    <p>/api/v2/games GET all games</p>
+    <p>/api/v1/games PUT updated game</p>
     ''', 200
 
 

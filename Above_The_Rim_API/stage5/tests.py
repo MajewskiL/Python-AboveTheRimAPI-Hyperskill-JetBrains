@@ -136,7 +136,7 @@ class FlaskProjectTest(FlaskTest):
         content = r.content.decode('UTF-8')
         if content.lower().count("<h1>") != 1 or content.lower().count("</h1>") != 1:
             raise WrongAnswer("There should be one tag <h1> and one tag </h1>.")
-        p_tags = 5
+        p_tags = 8
         if content.lower().count("<p>") != p_tags or content.lower().count("/p") != p_tags:
             raise WrongAnswer(f"There should be {p_tags} tags <p> and {p_tags} tags </p>.")
         soup = BeautifulSoup(content, 'html.parser')
@@ -148,7 +148,10 @@ class FlaskProjectTest(FlaskTest):
               "/api/v1/teams POST add team",
               "/api/v1/games GET all games",
               "/api/v1/games POST add game",
-              "/api/v1/team/%SHORT% GET a team statistics"]
+              "/api/v1/team/%SHORT% GET a team statistics",
+              "/api/v2/games POST add game",
+              "/api/v2/games GET all games",
+              "/api/v1/games PUT updated game"]
         if any([txt not in [l.text for l in list_all_p] for txt in ps]):
             raise WrongAnswer(f'There is some mistake in <p> tags!\nExpected:\n{sorted(ps)}\nFound:\n{sorted([txt.text for txt in list_all_p])}')
 

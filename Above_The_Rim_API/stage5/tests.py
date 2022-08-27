@@ -196,6 +196,19 @@ class FlaskProjectTest(FlaskTest):
             raise WrongAnswer(f'Wrong JSON format. \nExpected\n{dict(sorted(expected.items()))}, \nFound:\n{dict(sorted(content.items()))}')
         return
 
+    async def test_put_method(self, api_address, input_post, expected, code, text):
+        r = requests.put("/".join([self.get_url(), api_address]), json=input_post)
+        if r.status_code != code:
+            raise WrongAnswer(f"{text} PUT method should return code {code}.")
+        content = r.content.decode('UTF-8')
+        try:
+            content = json.loads(content)
+        except json.decoder.JSONDecodeError:
+            raise WrongAnswer('Request do not return JSON data.')
+        if self.check_json(content, expected):
+            raise WrongAnswer(f'Wrong JSON format. \nExpected\n{dict(sorted(expected.items()))}, \nFound:\n{dict(sorted(content.items()))}')
+        return
+
     @dynamic_test(order=1)
     def test1(self):
         ExitHandler.revert_exit()
@@ -219,7 +232,8 @@ class FlaskProjectTest(FlaskTest):
         database.connect()
         database.is_file_exist()
         tables = {"teams": {"id": ["PK"], "short": ["NN","UN"], "name": ["NN","UN"]},
-                  "games": {"id": ["PK"], "home_team": ["FK"], "visiting_team": ["FK"], "home_team_score": [], "visiting_team_score": []}}
+                  "games": {"id": ["PK"], "home_team": ["FK"], "visiting_team": ["FK"], "home_team_score": [], "visiting_team_score": []},
+                  "quarters": {"id": ["PK"], "game_id": ["FK"], "quarters": []}}
         for table, columns in tables.items():
             database.is_table_exist(table)
             database.is_column_exist(table, [column for column in columns.keys()])
@@ -336,6 +350,46 @@ class FlaskProjectTest(FlaskTest):
                                               "2": "Prague Wizards 76:67 Chicago Gulls",
                                               "3": "Prague Wizards 0:0 Chicago Gulls"}}
         asyncio.get_event_loop().run_until_complete(self.test_get_method("/api/v2/games", expected, 200, "Successful"))
+        return CheckResult.correct()
+
+    @dynamic_test(order=15)
+    def test15(self):
+        ExitHandler.revert_exit()
+        print("PUT method at /api/v2/games/%TEAMS.ID%.")
+        input_post = [{"id": 3, "quarters": "12:20"}, {"id": 3, "quarters": "21:12"}]
+        expected = {"data": "Score updated", "success": True}
+        for post in input_post:
+            asyncio.get_event_loop().run_until_complete(self.test_put_method("/api/v2/games", post, expected, 200, "Successful"))
+        return CheckResult.correct()
+
+    @dynamic_test(order=16)
+    def test16(self):
+        ExitHandler.revert_exit()
+        print("GET method at /api/v2/games.")
+        expected = {"success": True, "data": {"1": "Chicago Gulls 123:89 Prague Wizards",
+                                              "2": "Prague Wizards 76:67 Chicago Gulls",
+                                              "3": "Prague Wizards 33:32 Chicago Gulls (12:20,21:12)"}}
+        asyncio.get_event_loop().run_until_complete(self.test_get_method("/api/v2/games", expected, 200, "Successful"))
+        return CheckResult.correct()
+
+    @dynamic_test(order=17)
+    def test17(self):
+        ExitHandler.revert_exit()
+        print("GET method at /api/v1/games.")
+        expected = {"success": True, "data": {"1": "Chicago Gulls 123:89 Prague Wizards",
+                                              "2": "Prague Wizards 76:67 Chicago Gulls",
+                                              "3": "Prague Wizards 33:32 Chicago Gulls"}}
+        asyncio.get_event_loop().run_until_complete(self.test_get_method("/api/v1/games", expected, 200, "Successful"))
+        return CheckResult.correct()
+
+    @dynamic_test(order=18)
+    def test18(self):
+        ExitHandler.revert_exit()
+        print("PUT method at /api/v2/games")
+        input_post = [{"id": 6, "quarters": "12:20"}]
+        expected = {'data': 'There is no game with id 6', 'success': False}
+        for post in input_post:
+            asyncio.get_event_loop().run_until_complete(self.test_put_method("/api/v2/games", post, expected, 400, "Wrong"))
         return CheckResult.correct()
 
 

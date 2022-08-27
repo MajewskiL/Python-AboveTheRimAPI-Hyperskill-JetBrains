@@ -19,6 +19,7 @@ class SQLite3Test:
     4. Check is table exists
     5. Check are columns exists
     6. Do the rest of tests on tables: is column primary key, not null
+
     To do tests: is unique and is foreign key"""
 
     cursor_message = f"There is no cursor to connection."  # Is it proper message?

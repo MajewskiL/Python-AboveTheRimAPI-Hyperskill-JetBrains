@@ -9,6 +9,7 @@ from bs4 import BeautifulSoup
 import sqlite3
 import os
 
+TEAMS_V2 = []
 
 class SQLite3Test:
 
@@ -315,6 +316,26 @@ class FlaskProjectTest(FlaskTest):
         expected = {"data": "Wrong short format", "success": False}
         for post in input_post:
             asyncio.get_event_loop().run_until_complete(self.test_post_method("/api/v1/teams", post, expected, 400, "Wrong"))
+        return CheckResult.correct()
+
+    @dynamic_test(order=13)
+    def test13(self):
+        ExitHandler.revert_exit()
+        print("POST method at /api/v2/games")
+        input_post = [{"home_team": "PRW", "visiting_team": "CHG"}]
+        expected = {"data": 3, "success": True}
+        for post in input_post:
+            asyncio.get_event_loop().run_until_complete(self.test_post_method("/api/v2/games", post, expected, 201, "Successful"))
+        return CheckResult.correct()
+
+    @dynamic_test(order=14)
+    def test14(self):
+        ExitHandler.revert_exit()
+        print("GET method at /api/v2/games.")
+        expected = {"success": True, "data": {"1": "Chicago Gulls 123:89 Prague Wizards",
+                                              "2": "Prague Wizards 76:67 Chicago Gulls",
+                                              "3": "Prague Wizards 0:0 Chicago Gulls"}}
+        asyncio.get_event_loop().run_until_complete(self.test_get_method("/api/v2/games", expected, 200, "Successful"))
         return CheckResult.correct()
 
 

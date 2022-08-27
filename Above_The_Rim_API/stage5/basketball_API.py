@@ -53,7 +53,7 @@ def serialize_game_model(datas: GameModel, mode=""):
     for data in datas:
         h_team = TeamModel.query.filter_by(short=data.home_team).first()
         v_team = TeamModel.query.filter_by(short=data.visiting_team).first()
-        out[data.id] = f"{h_team.name} {data.home_team_score}:{data.visiting_team_score} {v_team.name}"
+        out[data.id] = f"{h_team.name} {data.home_team_score or 0}:{data.visiting_team_score or 0} {v_team.name}"
         if mode == "q":
             game = QuartersModel.query.filter_by(game_id=data.id).first()
             if game is not None:

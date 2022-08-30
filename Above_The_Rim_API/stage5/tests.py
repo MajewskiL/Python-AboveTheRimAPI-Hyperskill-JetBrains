@@ -252,6 +252,8 @@ class FlaskProjectTest(FlaskTest):
         database.close()
         return CheckResult.correct()
 
+#  stage 2
+
     @dynamic_test(order=4)
     def test4(self):
         ExitHandler.revert_exit()
@@ -277,6 +279,8 @@ class FlaskProjectTest(FlaskTest):
         expected = {"success": True, "data": {"CHG": "Chicago Gulls", "PRW": "Prague Wizards"}}
         asyncio.get_event_loop().run_until_complete(self.test_get_method("/api/v1/teams", expected, 200, "Successful"))
         return CheckResult.correct()
+
+#  stage 3
 
     @dynamic_test(order=7)
     def test7(self):
@@ -306,6 +310,8 @@ class FlaskProjectTest(FlaskTest):
             asyncio.get_event_loop().run_until_complete(self.test_post_method("/api/v1/games", post, expected, 400, "Wrong"))
         return CheckResult.correct()
 
+#  stage 4
+
     @dynamic_test(order=10)
     def test10(self):
         ExitHandler.revert_exit()
@@ -331,6 +337,8 @@ class FlaskProjectTest(FlaskTest):
         for post in input_post:
             asyncio.get_event_loop().run_until_complete(self.test_post_method("/api/v1/teams", post, expected, 400, "Wrong"))
         return CheckResult.correct()
+
+#  stage 5
 
     @dynamic_test(order=13)
     def test13(self):
@@ -421,6 +429,7 @@ class FlaskProjectTest(FlaskTest):
                                               "3": "Prague Wizards 38:44 Chicago Gulls"}}
         asyncio.get_event_loop().run_until_complete(self.test_get_method("/api/v1/games", expected, 200, "Successful"))
         return CheckResult.correct()
+
 
 if __name__ == '__main__':
     FlaskProjectTest().run_tests()

@@ -169,7 +169,7 @@ class FlaskProjectTest(FlaskTest):
         asyncio.get_event_loop().run_until_complete(self.test_random_page())
         return CheckResult.correct()
 
-    @dynamic_test(order=2)
+    @dynamic_test(order=3)
     def test3(self):
         ExitHandler.revert_exit()
         db_name = "db.sqlite3"

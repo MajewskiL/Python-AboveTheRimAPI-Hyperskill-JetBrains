@@ -152,7 +152,7 @@ class FlaskProjectTest(FlaskTest):
               "/api/v1/team/%SHORT% GET a team statistics",
               "/api/v2/games POST add game",
               "/api/v2/games GET all games",
-              "/api/v1/games PUT updated game"]
+              "/api/v1/games PUT updated quarters"]
         if any([txt not in [l.text for l in list_all_p] for txt in ps]):
             raise WrongAnswer(f'There is some mistake in <p> tags!\nExpected:\n{sorted(ps)}\nFound:\n{sorted([txt.text for txt in list_all_p])}')
 
@@ -196,10 +196,10 @@ class FlaskProjectTest(FlaskTest):
             raise WrongAnswer(f'Wrong JSON format. \nExpected\n{dict(sorted(expected.items()))}, \nFound:\n{dict(sorted(content.items()))}')
         return
 
-    async def test_put_method(self, api_address, input_post, expected, code, text):
-        r = requests.put("/".join([self.get_url(), api_address]), json=input_post)
+    async def test_patch_method(self, api_address, input_post, expected, code, text):
+        r = requests.patch("/".join([self.get_url(), api_address]), json=input_post)
         if r.status_code != code:
-            raise WrongAnswer(f"{text} PUT method should return code {code}.")
+            raise WrongAnswer(f"{text} PATCH method should return code {code}.")
         content = r.content.decode('UTF-8')
         try:
             content = json.loads(content)
@@ -367,7 +367,7 @@ class FlaskProjectTest(FlaskTest):
         input_post = [{"id": 3, "quarters": "12:20"}, {"id": 3, "quarters": "21:12"}]
         expected = {"data": "Score updated", "success": True}
         for post in input_post:
-            asyncio.get_event_loop().run_until_complete(self.test_put_method("/api/v2/games", post, expected, 200, "Successful"))
+            asyncio.get_event_loop().run_until_complete(self.test_patch_method("/api/v2/games", post, expected, 200, "Successful"))
         return CheckResult.correct()
 
     @dynamic_test(order=16)
@@ -393,11 +393,11 @@ class FlaskProjectTest(FlaskTest):
     @dynamic_test(order=18)
     def test18(self):
         ExitHandler.revert_exit()
-        print("PUT method at /api/v2/games")
+        print("PATCH method at /api/v2/games")
         input_post = [{"id": 6, "quarters": "12:20"}]
         expected = {'data': 'There is no game with id 6', 'success': False}
         for post in input_post:
-            asyncio.get_event_loop().run_until_complete(self.test_put_method("/api/v2/games", post, expected, 400, "Wrong"))
+            asyncio.get_event_loop().run_until_complete(self.test_patch_method("/api/v2/games", post, expected, 400, "Wrong"))
         return CheckResult.correct()
 
     @dynamic_test(order=19)
@@ -407,7 +407,7 @@ class FlaskProjectTest(FlaskTest):
         input_post = [{"id": 3, "quarters": "5:12"}]
         expected = {"data": "Score updated", "success": True}
         for post in input_post:
-            asyncio.get_event_loop().run_until_complete(self.test_put_method("/api/v2/games", post, expected, 200, "Successful"))
+            asyncio.get_event_loop().run_until_complete(self.test_patch_method("/api/v2/games", post, expected, 200, "Successful"))
         return CheckResult.correct()
 
     @dynamic_test(order=20)

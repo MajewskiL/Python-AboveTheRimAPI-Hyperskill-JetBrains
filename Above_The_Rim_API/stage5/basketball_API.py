@@ -117,7 +117,7 @@ def games():
             return jsonify({"success": False, "data": "Wrong team short"}), 400
 
 
-@app.route('/api/v2/games', methods=["PUT"])
+@app.route('/api/v2/games', methods=["PATCH"])
 def add_quarter():
     data = request.get_json()
     game = GameModel.query.filter_by(id=data["id"]).first()
@@ -186,7 +186,7 @@ def home():
     <p>/api/v1/team/%SHORT% GET a team statistics</p>
     <p>/api/v2/games POST add game</p>
     <p>/api/v2/games GET all games</p>
-    <p>/api/v1/games PUT updated game</p>
+    <p>/api/v1/games PUT updated quarters</p>
     ''', 200
 
 

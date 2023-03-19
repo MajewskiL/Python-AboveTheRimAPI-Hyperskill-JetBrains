@@ -158,14 +158,7 @@ def team(name):
     else:
         return jsonify({"success": False, "data": f"There is no team {name}"}), 400
 
-
-# Stage 2
-# GET teams {"success": True, "data": TEAMS} 200
-# POST teams {"success": True, "data": "Team was added"} 201
-
-# Stage 3
-# POST teams {"success": False, "data": "All fields are required"} 400
-# POST teams {"success": False, "data": "Wrong data format or empty required field"} 400
+# tet
 
 @app.route('/')
 def home():

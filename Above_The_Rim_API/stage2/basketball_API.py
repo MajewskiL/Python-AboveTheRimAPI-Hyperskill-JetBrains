@@ -18,7 +18,7 @@ class TeamModel(db.Model):
     name = db.Column(db.String(50), unique=True, nullable=False)
 
 
-db.create_all()
+#db.create_all()
 
 
 def serialize_team_model(datas: TeamModel):

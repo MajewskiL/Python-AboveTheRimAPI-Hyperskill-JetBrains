@@ -29,9 +29,9 @@ class GameModel(db.Model):
     visiting_team_score = db.Column(db.Integer)
 
 
-db.create_all()
+#db.create_all()
 
-db.create_all()
+#db.create_all()
 
 
 def serialize_team_model(datas: TeamModel):
@@ -91,12 +91,16 @@ def games():
 def team(name):
     team = TeamModel.query.filter_by(short=name).first()
     if team:
-        all = db.engine.execute(f"SELECT COUNT (*) FROM games WHERE (home_team = '{team.short}' or visiting_team = '{team.short}');")
-        win = db.engine.execute(f"SELECT COUNT (*) FROM games WHERE (home_team = '{team.short}' and home_team_score > visiting_team_score) "
-                                f"or (visiting_team = '{team.short}' and home_team_score < visiting_team_score);")
-        all = all.first()[0]
+        all1 = db.session.execute(text(f"""SELECT COUNT (*) FROM games WHERE (home_team = '{team.short}' or visiting_team = '{team.short}')"""))
+        win = db.session.execute(text(f"SELECT COUNT (*) FROM games WHERE (home_team = '{team.short}' "
+                            f"and home_team_score > visiting_team_score) or (visiting_team = '{team.short}' "
+                            f"and home_team_score < visiting_team_score);"""))
+        lost = db.session.execute(text(f"SELECT COUNT (*) FROM games WHERE (home_team = '{team.short}' "
+                            f"and home_team_score < visiting_team_score) or (visiting_team = '{team.short}' "
+                            f"and home_team_score > visiting_team_score);"""))
+        lost = lost.first()[0]
         win = win.first()[0]
-        return jsonify({"success": True, "data": {"short": team.short, "name": team.name, "win": win, "lost": all - win}}), 200
+        return jsonify({"success": True, "data": {"short": team.short, "name": team.name, "win": win, "lost": lost}}), 200
     else:
         return jsonify({"success": False, "data": f"There is no team {name}"}), 400
 
@@ -136,6 +140,8 @@ def error(e):
 
 # don't change the following way to run flask:
 if __name__ == '__main__':
+    with app.app_context():
+        db.create_all()
     if len(sys.argv) > 1:
         arg_host, arg_port = sys.argv[1].split(':')
         app.run(host=arg_host, port=arg_port)

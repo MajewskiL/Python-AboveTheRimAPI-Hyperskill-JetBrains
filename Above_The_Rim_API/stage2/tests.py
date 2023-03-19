@@ -204,7 +204,7 @@ class FlaskProjectTest(FlaskTest):
     def test3(self):
         ExitHandler.revert_exit()
         print("Checking database and deleting data.")
-        db_name = "db.sqlite3"
+        db_name = "instance/db.sqlite3"
         database = SQLite3Test(db_name)
         database.connect()
         database.is_file_exist()

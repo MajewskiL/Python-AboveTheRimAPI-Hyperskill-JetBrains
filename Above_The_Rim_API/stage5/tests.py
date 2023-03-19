@@ -227,7 +227,7 @@ class FlaskProjectTest(FlaskTest):
     def test3(self):
         ExitHandler.revert_exit()
         print("Checking database and deleting data.")
-        db_name = "db.sqlite3"
+        db_name = "instance/db.sqlite3"
         database = SQLite3Test(db_name)
         database.connect()
         database.is_file_exist()
@@ -363,11 +363,11 @@ class FlaskProjectTest(FlaskTest):
     @dynamic_test(order=15)
     def test15(self):
         ExitHandler.revert_exit()
-        print("PUT method at /api/v2/games")
-        input_post = [{"id": 3, "quarters": "12:20"}, {"id": 3, "quarters": "21:12"}]
+        print("PATCH method at /api/v2/games/3")
+        input_post = [{"quarters": "12:20"}, {"quarters": "21:12"}]
         expected = {"data": "Score updated", "success": True}
         for post in input_post:
-            asyncio.get_event_loop().run_until_complete(self.test_patch_method("/api/v2/games", post, expected, 200, "Successful"))
+            asyncio.get_event_loop().run_until_complete(self.test_patch_method("/api/v2/games/3", post, expected, 200, "Successful"))
         return CheckResult.correct()
 
     @dynamic_test(order=16)
@@ -397,17 +397,17 @@ class FlaskProjectTest(FlaskTest):
         input_post = [{"id": 6, "quarters": "12:20"}]
         expected = {'data': 'There is no game with id 6', 'success': False}
         for post in input_post:
-            asyncio.get_event_loop().run_until_complete(self.test_patch_method("/api/v2/games", post, expected, 400, "Wrong"))
+            asyncio.get_event_loop().run_until_complete(self.test_patch_method("/api/v2/games/6", post, expected, 400, "Wrong"))
         return CheckResult.correct()
 
     @dynamic_test(order=19)
     def test19(self):
         ExitHandler.revert_exit()
-        print("PUT method at /api/v2/games")
-        input_post = [{"id": 3, "quarters": "12:21"}, {"id": 3, "quarters": "20:12"}, {"id": 3, "quarters": "3:9"}]
+        print("PATCH method at /api/v2/games/3")
+        input_post = [{"quarters": "12:21"}, {"quarters": "20:12"}, {"quarters": "3:9"}]
         expected = {"data": "Score updated", "success": True}
         for post in input_post:
-            asyncio.get_event_loop().run_until_complete(self.test_patch_method("/api/v2/games", post, expected, 200, "Successful"))
+            asyncio.get_event_loop().run_until_complete(self.test_patch_method("/api/v2/games/3", post, expected, 200, "Successful"))
         return CheckResult.correct()
 
     @dynamic_test(order=20)

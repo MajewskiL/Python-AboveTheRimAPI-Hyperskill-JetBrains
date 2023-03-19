@@ -172,7 +172,7 @@ class FlaskProjectTest(FlaskTest):
     @dynamic_test(order=3)
     def test3(self):
         ExitHandler.revert_exit()
-        db_name = "db.sqlite3"
+        db_name = "instance/db.sqlite3"
         table = "teams"
         columns = ["id", "short", "name"]
         print("Checking database.")

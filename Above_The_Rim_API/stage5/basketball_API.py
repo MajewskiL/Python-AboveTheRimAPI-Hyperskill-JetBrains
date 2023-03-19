@@ -168,12 +168,6 @@ def team(name):
 # POST teams {"success": False, "data": "Wrong data format or empty required field"} 400
 # POST teams {"success": True, "data": "Team was added"} 201
 
-# GET games {"success": True, "data": TEAMS} 200
-
-
-# Stage 4
-# GET team/<name> {"success": True, "data": {name: , short: , win: , lost: }}, 200
-
 @app.route('/')
 def home():
     return '''

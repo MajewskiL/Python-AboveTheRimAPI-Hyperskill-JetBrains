@@ -166,7 +166,6 @@ def team(name):
 # Stage 3
 # POST teams {"success": False, "data": "All fields are required"} 400
 # POST teams {"success": False, "data": "Wrong data format or empty required field"} 400
-# POST teams {"success": True, "data": "Team was added"} 201
 
 @app.route('/')
 def home():

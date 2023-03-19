@@ -173,10 +173,6 @@ def team(name):
 
 # Stage 4
 # GET team/<name> {"success": True, "data": {name: , short: , win: , lost: }}, 200
-# GET team/<name> {"success": False, "data": "There is no team {name}"}, 400
-
-
-
 
 @app.route('/')
 def home():

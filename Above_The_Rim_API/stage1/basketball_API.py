@@ -18,7 +18,7 @@ class ReModel(db.Model):
     name = db.Column(db.String(50), unique=True, nullable=False)
 
 
-db.create_all()
+
 
 
 @app.route('/')
@@ -37,7 +37,11 @@ def error(e):
 # don't change the following way to run flask:
 if __name__ == '__main__':
     if len(sys.argv) > 1:
+        with app.app_context():
+            db.create_all()
         arg_host, arg_port = sys.argv[1].split(':')
         app.run(host=arg_host, port=arg_port)
     else:
+        with app.app_context():
+            db.create_all()
         app.run(debug=True)

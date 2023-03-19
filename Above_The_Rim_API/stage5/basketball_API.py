@@ -36,7 +36,7 @@ class QuartersModel(db.Model):
     quarters = db.Column(db.String(100))
 
 
-db.create_all()
+#  db.create_all()
 
 #  db.create_all()
 
@@ -117,21 +117,21 @@ def games():
             return jsonify({"success": False, "data": "Wrong team short"}), 400
 
 
-@app.route('/api/v2/games', methods=["PATCH"])
-def add_quarter():
+@app.route('/api/v2/games/<id_game>', methods=["PATCH"])
+def add_quarter(id_game):
     data = request.get_json()
-    game = GameModel.query.filter_by(id=data["id"]).first()
+    game = GameModel.query.filter_by(id=id_game).first()
     if game is None:
         return jsonify({"success": False, "data": f"There is no game with id {data['id']}"}), 400
     if game.home_team_score is None:
-        quarter = QuartersModel(game_id=data["id"], quarters=data["quarters"])
+        quarter = QuartersModel(game_id=id_game, quarters=data["quarters"])
         db.session.add(quarter)
         data = data["quarters"].split(":")
         game.home_team_score = data[0]
         game.visiting_team_score = data[1]
         db.session.commit()
     else:
-        last_score = QuartersModel.query.filter_by(game_id=data["id"]).first()
+        last_score = QuartersModel.query.filter_by(game_id=id_game).first()
         last_score.quarters = last_score.quarters + "," + data["quarters"]
         data = data["quarters"].split(":")
         game.home_team_score = game.home_team_score + int(data[0])
@@ -145,12 +145,16 @@ def add_quarter():
 def team(name):
     team = TeamModel.query.filter_by(short=name).first()
     if team:
-        all = db.engine.execute(f"SELECT COUNT (*) FROM games WHERE (home_team = '{team.short}' or visiting_team = '{team.short}');")
-        win = db.engine.execute(f"SELECT COUNT (*) FROM games WHERE (home_team = '{team.short}' and home_team_score > visiting_team_score) "
-                                f"or (visiting_team = '{team.short}' and home_team_score < visiting_team_score);")
-        all = all.first()[0]
+        all1 = db.session.execute(text(f"""SELECT COUNT (*) FROM games WHERE (home_team = '{team.short}' or visiting_team = '{team.short}')"""))
+        win = db.session.execute(text(f"SELECT COUNT (*) FROM games WHERE (home_team = '{team.short}' "
+                            f"and home_team_score > visiting_team_score) or (visiting_team = '{team.short}' "
+                            f"and home_team_score < visiting_team_score);"""))
+        lost = db.session.execute(text(f"SELECT COUNT (*) FROM games WHERE (home_team = '{team.short}' "
+                            f"and home_team_score < visiting_team_score) or (visiting_team = '{team.short}' "
+                            f"and home_team_score > visiting_team_score);"""))
+        lost = lost.first()[0]
         win = win.first()[0]
-        return jsonify({"success": True, "data": {"short": team.short, "name": team.name, "win": win, "lost": all - win}}), 200
+        return jsonify({"success": True, "data": {"short": team.short, "name": team.name, "win": win, "lost": lost}}), 200
     else:
         return jsonify({"success": False, "data": f"There is no team {name}"}), 400
 
@@ -199,7 +203,11 @@ def error(e):
 # don't change the following way to run flask:
 if __name__ == '__main__':
     if len(sys.argv) > 1:
+        with app.app_context():
+            db.create_all()
         arg_host, arg_port = sys.argv[1].split(':')
         app.run(host=arg_host, port=arg_port)
     else:
+        with app.app_context():
+            db.create_all()
         app.run(debug=True)

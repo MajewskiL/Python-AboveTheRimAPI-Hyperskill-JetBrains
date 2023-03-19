@@ -175,8 +175,7 @@ def team(name):
 # GET team/<name> {"success": True, "data": {name: , short: , win: , lost: }}, 200
 # GET team/<name> {"success": False, "data": "There is no team {name}"}, 400
 
-# Stage 5
-# ????
+
 
 
 @app.route('/')

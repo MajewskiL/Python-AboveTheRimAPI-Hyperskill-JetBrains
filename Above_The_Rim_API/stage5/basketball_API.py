@@ -35,11 +35,8 @@ class QuartersModel(db.Model):
     game_id = db.Column(db.Integer, db.ForeignKey('games.id'))
     quarters = db.Column(db.String(100))
 
-
-#  db.create_all()
-
-#  db.create_all()
-
+with app.app_context():
+    db.create_all()
 
 def serialize_team_model(datas: TeamModel):
     out = {}
@@ -184,11 +181,7 @@ def error(e):
 # don't change the following way to run flask:
 if __name__ == '__main__':
     if len(sys.argv) > 1:
-        with app.app_context():
-            db.create_all()
         arg_host, arg_port = sys.argv[1].split(':')
         app.run(host=arg_host, port=arg_port)
     else:
-        with app.app_context():
-            db.create_all()
         app.run(debug=True)

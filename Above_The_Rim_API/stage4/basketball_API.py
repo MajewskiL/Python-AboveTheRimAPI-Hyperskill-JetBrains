@@ -29,9 +29,8 @@ class GameModel(db.Model):
     visiting_team_score = db.Column(db.Integer)
 
 
-#db.create_all()
-
-#db.create_all()
+with app.app_context():
+    db.create_all()
 
 
 def serialize_team_model(datas: TeamModel):
@@ -105,21 +104,6 @@ def team(name):
         return jsonify({"success": False, "data": f"There is no team {name}"}), 400
 
 
-# Stage 2
-# GET teams {"success": True, "data": TEAMS} 200
-# POST teams {"success": True, "data": "Team has been added"} 201
-
-# Stage 3
-# GET games {"success": True, "data": TEAMS} 200
-# POST games {"success": True, "data": "Game has been added"} 201
-
-
-# Stage 4
-# POST teams {"success": False, "data": "Wrong short format or required field is empty"} 400
-# GET team/<name> {"success": True, "data": {name: , short: , win: , lost: }}, 200
-# GET team/<name> {"success": False, "data": "There is no team {name}"}, 400
-
-
 @app.route('/')
 def home():
     return '''
@@ -140,8 +124,6 @@ def error(e):
 
 # don't change the following way to run flask:
 if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
     if len(sys.argv) > 1:
         arg_host, arg_port = sys.argv[1].split(':')
         app.run(host=arg_host, port=arg_port)

@@ -4,7 +4,7 @@ import random
 from hstest import FlaskTest, CheckResult, WrongAnswer
 from hstest import dynamic_test
 from hstest.dynamic.security.exit_handler import ExitHandler
-from pip._vendor import requests
+import requests
 from bs4 import BeautifulSoup
 import sqlite3
 import os

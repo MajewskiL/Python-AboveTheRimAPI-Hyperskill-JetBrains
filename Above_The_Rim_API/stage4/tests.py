@@ -135,7 +135,7 @@ class FlaskProjectTest(FlaskTest):
     async def test_home_page(self):
         r = requests.get(self.get_url())
         if r.status_code != 200:
-            raise WrongAnswer("Home page should return code 200.")
+            raise WrongAnswer(f"Home page should return code 200. Found {r.status_code}.")
         content = r.content.decode('UTF-8')
         if content.lower().count("<h1>") != 1 or content.lower().count("</h1>") != 1:
             raise WrongAnswer("Checking Home Page.\nThere should be one tag <h1> and one tag </h1>.")
@@ -158,16 +158,17 @@ class FlaskProjectTest(FlaskTest):
     async def test_random_page(self):
         r = requests.get("/".join([self.get_url(), ''.join(random.choice("abcdefghijk") for i in range(5))]))
         if r.status_code != 404:
-            raise WrongAnswer("Not existing page should return code 404.")
+            raise WrongAnswer(f"Checking not existing page.\nNot existing page should return code 404. Found {r.status_code}.")
         content = r.content.decode('UTF-8')
         try:
             content = json.loads(content)
         except json.decoder.JSONDecodeError:
-            raise WrongAnswer('Request do not return JSON data.')
-        expected = json.loads(json.dumps({"success": False, "data": "Wrong address"}))
-        #  expected = {"success": False, "data": "Wrong address"}
+            raise WrongAnswer('Checking not existing page.\nRequest do not return JSON data.')
+        #  expected = json.loads(json.dumps({"success": False, "data": "Wrong address"}))
+        expected = {"success": False, "data": "Wrong address"}
+
         if self.check_json(content, expected):
-            raise WrongAnswer(f'Wrong JSON format. \nExpected\n{dict(sorted(expected.items()))}, \nFound:\n{dict(sorted(content.items()))}')
+            raise WrongAnswer(f'Checking not existing page.\nWrong JSON format. \nExpected\n{dict(sorted(expected.items()))}, \nFound:\n{dict(sorted(content.items()))}')
 
     async def test_get_method(self, api_address, expected, code, text):
         r = requests.get("/".join([self.get_url(), api_address]))

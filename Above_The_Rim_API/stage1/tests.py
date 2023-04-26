@@ -64,7 +64,8 @@ class SQLite3Test:
         return lines
 
     def is_table_exist(self, name):  # table name -> string
-        lines = self.run_query(f"SELECT count(name) FROM sqlite_master WHERE type='table' AND name='{name}';").fetchall()
+        lines = self.run_query(f"SELECT count(name) FROM sqlite_master WHERE "
+                               f"type='table' AND (name='{name.lower()}' OR name='{name.upper()}');").fetchall()
         if lines[0][0] == 0:
             self.close()
             raise WrongAnswer(f"There is no table named '{name}' in database {self.file_name}")
@@ -78,16 +79,17 @@ class SQLite3Test:
     def is_column_exist(self, name, names):  # table name -> string, column names -> list of strings for all columns, or list with one string for one column
         lines = self.run_query(f'select * from {name}').description
         if len(names) != 1:
-            if sorted(names) != sorted([line[0] for line in lines]):
+            if sorted(names) != sorted([line[0].lower() for line in lines]):
                 self.close()
                 raise WrongAnswer(f"There is something wrong in table {name}. Found column names: {[line[0] for line in lines]}. Expected {names}'")
         else:
-            if not any([names[0] == c_name for c_name in [line[0] for line in lines]]):
+            if not any([names[0] == c_name for c_name in [line[0].lower() for line in lines]]):
                 self.close()
                 raise WrongAnswer(f"There is something wrong in table {name}. Found column names: {[line[0] for line in lines]}. Expected to find '{names[0]}'")
 
     def table_info(self, name, column, attribute):   # table name -> string, column name -> string, attr ("PK" Primary Key; "NN" Not null)
         lines = self.run_query(f"PRAGMA table_info({name})").fetchall()
+        lines = [line[:1] + tuple([line[1].lower()]) + line[2:] for line in lines]
         if column not in [line[1] for line in lines]:
             raise WrongAnswer(f"There is no column {column}.")
         for line in lines:
@@ -101,6 +103,7 @@ class SQLite3Test:
 
     def is_unique(self, name, column):  # table name -> string, column name -> string
         lines = self.run_query(f"SELECT inf.name FROM pragma_index_list('{name}') as lst, pragma_index_info(lst.name) as inf WHERE lst.[unique] = 1;").fetchall()
+        lines = [tuple([line[0].lower()]) + line[1:] for line in lines]
         if not any([column in line for line in lines]):
             raise WrongAnswer(f"There is no UNIQUE parameter in {name} on column {column}.")
         return True
@@ -186,6 +189,7 @@ class FlaskProjectTest(FlaskTest):
         database.table_info(table, columns[1], "NN")
         database.is_unique(table, columns[2])
         database.is_unique(table, columns[1])
+
         database.close()
         return CheckResult.correct()
 

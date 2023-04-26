@@ -9,7 +9,6 @@ from bs4 import BeautifulSoup
 import sqlite3
 import os
 
-TEAMS_V2 = []
 
 class SQLite3Test:
 
@@ -43,7 +42,7 @@ class SQLite3Test:
             self.conn = sqlite3.connect(self.file_name)
             self.cursor = self.conn.cursor()
         except sqlite3.OperationalError as err:
-            raise WrongAnswer(f"DataBase '{self.file_name}' may be locked. An error was returned when trying to connect: {err}.")
+            raise WrongAnswer(f"DataBase {self.file_name} may be locked. An error was returned when trying to connect: {err}.")
 
     def close(self):
         try:
@@ -65,7 +64,8 @@ class SQLite3Test:
         return lines
 
     def is_table_exist(self, name):  # table name -> string
-        lines = self.run_query(f"SELECT count(name) FROM sqlite_master WHERE type='table' AND name='{name}';").fetchall()
+        lines = self.run_query(f"SELECT count(name) FROM sqlite_master WHERE "
+                               f"type='table' AND (name='{name.lower()}' OR name='{name.upper()}');").fetchall()
         if lines[0][0] == 0:
             self.close()
             raise WrongAnswer(f"There is no table named '{name}' in database {self.file_name}")
@@ -74,36 +74,38 @@ class SQLite3Test:
         lines = self.run_query(f"SELECT COUNT(*) FROM {name}").fetchone()[0]
         if lines != expected_lines:
             self.close()
-            raise WrongAnswer(f"Wrong number of records in table '{name}'. Expected {expected_lines}, found {lines}")
+            raise WrongAnswer(f"Wrong number of records in table {name}. Expected {expected_lines}, found {lines}")
 
     def is_column_exist(self, name, names):  # table name -> string, column names -> list of strings for all columns, or list with one string for one column
         lines = self.run_query(f'select * from {name}').description
         if len(names) != 1:
-            if sorted(names) != sorted([line[0] for line in lines]):
+            if sorted(names) != sorted([line[0].lower() for line in lines]):
                 self.close()
-                raise WrongAnswer(f"There is something wrong in table '{name}'. Found column names: {[line[0] for line in lines]}. Expected {names}")
+                raise WrongAnswer(f"There is something wrong in table {name}. Found column names: {[line[0] for line in lines]}. Expected {names}'")
         else:
-            if not any([names[0] == c_name for c_name in [line[0] for line in lines]]):
+            if not any([names[0] == c_name for c_name in [line[0].lower() for line in lines]]):
                 self.close()
-                raise WrongAnswer(f"There is something wrong in table '{name}'. Found column names: {[line[0] for line in lines]}. Expected {names[0]}")
+                raise WrongAnswer(f"There is something wrong in table {name}. Found column names: {[line[0] for line in lines]}. Expected to find '{names[0]}'")
 
     def table_info(self, name, column, attribute):   # table name -> string, column name -> string, attr ("PK" Primary Key; "NN" Not null)
         lines = self.run_query(f"PRAGMA table_info({name})").fetchall()
+        lines = [line[:1] + tuple([line[1].lower()]) + line[2:] for line in lines]
         if column not in [line[1] for line in lines]:
-            raise WrongAnswer(f"There is no column '{column}'.")
+            raise WrongAnswer(f"There is no column {column}.")
         for line in lines:
             if attribute == "PK":
                 if line[1] == column and line[5] != 1:
                     self.close()
-                    raise WrongAnswer(f"There is no PRIMARY KEY parameter in '{name}' on column '{column}'.")
+                    raise WrongAnswer(f"There is no PRIMARY KEY parameter in {name} on column {column}.")
             elif attribute == "NN":
                 if line[1] == column and line[3] != 1:
-                    raise WrongAnswer(f"There is no NOT NULL parameter in '{name}' on column '{column}'.")
+                    raise WrongAnswer(f"There is no NOT NULL parameter in {name} on column {column}.")
 
     def is_unique(self, name, column):  # table name -> string, column name -> string
         lines = self.run_query(f"SELECT inf.name FROM pragma_index_list('{name}') as lst, pragma_index_info(lst.name) as inf WHERE lst.[unique] = 1;").fetchall()
+        lines = [tuple([line[0].lower()]) + line[1:] for line in lines]
         if not any([column in line for line in lines]):
-            raise WrongAnswer(f"There is no UNIQUE parameter in '{name}' on column '{column}'.")
+            raise WrongAnswer(f"There is no UNIQUE parameter in {name} on column {column}.")
         return True
 
     def is_foreign_key(self, name, column):  # table name -> string, column name -> string

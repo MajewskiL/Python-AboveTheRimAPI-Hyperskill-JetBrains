@@ -138,14 +138,14 @@ class FlaskProjectTest(FlaskTest):
             raise WrongAnswer("Home page should return code 200.")
         content = r.content.decode('UTF-8')
         if content.lower().count("<h1>") != 1 or content.lower().count("</h1>") != 1:
-            raise WrongAnswer("There should be one tag <h1> and one tag </h1>.")
+            raise WrongAnswer("Checking Home Page.\nThere should be one tag <h1> and one tag </h1>.")
         p_tags = 8
         if content.lower().count("<p>") != p_tags or content.lower().count("/p") != p_tags:
-            raise WrongAnswer(f"There should be {p_tags} tags <p> and {p_tags} tags </p>.")
+            raise WrongAnswer(f"Checking Home Page.\nThere should be {p_tags} tags <p> and {p_tags} tags </p>.")
         soup = BeautifulSoup(content, 'html.parser')
         list_all_h1 = soup.find_all('h1')
         if 'Welcome to the "Above the Rim" API!' not in list_all_h1[0].text:
-            raise WrongAnswer('There is no welcome text inside the tag <h1>: Welcome to the "Above the Rim" API!')
+            raise WrongAnswer('Checking Home Page.\nThere is no welcome text inside the tag <h1>: Welcome to the "Above the Rim" API!')
         list_all_p = soup.find_all('p')
         ps = ["/api/v1/teams GET all teams",
               "/api/v1/teams POST add team",
@@ -156,7 +156,7 @@ class FlaskProjectTest(FlaskTest):
               "/api/v2/games GET all games",
               "/api/v1/games PUT updated quarters"]
         if any([txt not in [l.text for l in list_all_p] for txt in ps]):
-            raise WrongAnswer(f'There is some mistake in <p> tags!\nExpected:\n{sorted(ps)}\nFound:\n{sorted([txt.text for txt in list_all_p])}')
+            raise WrongAnswer(f'Checking Home Page.\nThere is some mistake in <p> tags!\nExpected:\n{sorted(ps)}\nFound:\n{sorted([txt.text for txt in list_all_p])}')
 
     async def test_random_page(self):
         r = requests.get("/".join([self.get_url(), ''.join(random.choice("abcdefghijk") for i in range(5))]))

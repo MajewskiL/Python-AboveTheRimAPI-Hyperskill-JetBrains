@@ -110,6 +110,8 @@ class SQLite3Test:
 
     def is_foreign_key(self, name, column):  # table name -> string, column name -> string
         lines = self.run_query(f"SELECT * FROM pragma_foreign_key_list('{name}');").fetchall()
+        lines = [line[:2] + tuple([line[2].lower()]) + tuple([line[3].lower()])
+                 + tuple([line[4].lower()]) + line[5:] for line in lines]
         if not any([column in line for line in lines]):
             raise WrongAnswer(f"There is no FOREIGN KEY parameter in {name} on column {column}.")
         return True

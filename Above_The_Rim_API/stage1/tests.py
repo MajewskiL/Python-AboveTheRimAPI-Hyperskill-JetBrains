@@ -148,13 +148,12 @@ class FlaskProjectTest(FlaskTest):
         if r.status_code != 404:
             raise WrongAnswer(f"Checking not existing page.\nNot existing page should return code 404. Found {r.status_code}.")
         content = r.content.decode('UTF-8')
+        expected = {"success": False, "data": "Wrong address"}
         try:
             content = json.loads(content)
         except json.decoder.JSONDecodeError:
-            raise WrongAnswer('Checking not existing page.\nRequest do not return JSON data.')
+            raise WrongAnswer(f'Checking not existing page.\nRequest do not return JSON data.\nExpected {expected}.\nFound {content}.')
         #  expected = json.loads(json.dumps({"success": False, "data": "Wrong address"}))
-        expected = {"success": False, "data": "Wrong address"}
-
         if self.check_json(content, expected):
             raise WrongAnswer(f'Checking not existing page.\nWrong JSON format. \nExpected\n{dict(sorted(expected.items()))}, \nFound:\n{dict(sorted(content.items()))}')
 

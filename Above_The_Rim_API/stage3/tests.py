@@ -156,40 +156,39 @@ class FlaskProjectTest(FlaskTest):
         if r.status_code != 404:
             raise WrongAnswer(f"Checking not existing page.\nNot existing page should return code 404. Found {r.status_code}.")
         content = r.content.decode('UTF-8')
+        expected = {"success": False, "data": "Wrong address"}
         try:
             content = json.loads(content)
         except json.decoder.JSONDecodeError:
-            raise WrongAnswer('Checking not existing page.\nRequest do not return JSON data.')
+            raise WrongAnswer(f'Checking not existing page.\nRequest do not return JSON data.\nExpected {expected}.\nFound {content}.')
         #  expected = json.loads(json.dumps({"success": False, "data": "Wrong address"}))
-        expected = {"success": False, "data": "Wrong address"}
-
         if self.check_json(content, expected):
             raise WrongAnswer(f'Checking not existing page.\nWrong JSON format. \nExpected\n{dict(sorted(expected.items()))}, \nFound:\n{dict(sorted(content.items()))}')
 
-    async def test_get_method(self, api_address, expected):
+    async def test_get_method(self, api_address, expected, code, text):
         r = requests.get("/".join([self.get_url(), api_address]))
-        if r.status_code != 200:
-            raise WrongAnswer("Successful GET method should return code 200.")
+        if r.status_code != code:
+            raise WrongAnswer(f"{text} GET method at {api_address} should return code {code}. Found {r.status_code}.")
         content = r.content.decode('UTF-8')
         try:
             content = json.loads(content)
         except json.decoder.JSONDecodeError:
-            raise WrongAnswer('Request do not return JSON data.')
+            raise WrongAnswer(f'{text} GET method at {api_address} do not return JSON data.\nExpected {expected}.\nFound {content}.')
         if self.check_json(content, expected):
-            raise WrongAnswer(f'Wrong JSON format. \nExpected\n{dict(sorted(expected.items()))}, \nFound:\n{dict(sorted(content.items()))}')
+            raise WrongAnswer(f'{text} GET method at {api_address} return wrong JSON format. \nExpected\n{dict(sorted(expected.items()))}, \nFound:\n{dict(sorted(content.items()))}')
         return
 
     async def test_post_method(self, api_address, input_post, expected, code, text):
         r = requests.post("/".join([self.get_url(), api_address]), json=input_post)
         if r.status_code != code:
-            raise WrongAnswer(f"{text} POST method should return code {code}.")
+            raise WrongAnswer(f"{text} POST method at {api_address} should return code {code}. Found {r.status_code}.")
         content = r.content.decode('UTF-8')
         try:
             content = json.loads(content)
         except json.decoder.JSONDecodeError:
-            raise WrongAnswer('Request do not return JSON data.')
+            raise WrongAnswer(f'{text} POST method at {api_address} do not return JSON data.\nExpected {expected}.\nFound {content}.')
         if self.check_json(content, expected):
-            raise WrongAnswer(f'Wrong JSON format. \nExpected\n{dict(sorted(expected.items()))}, \nFound:\n{dict(sorted(content.items()))}')
+            raise WrongAnswer(f'{text} POST method at {api_address} return wrong JSON format. \nExpected\n{dict(sorted(expected.items()))}, \nFound:\n{dict(sorted(content.items()))}')
         return
 
     @dynamic_test(order=1)
@@ -239,7 +238,7 @@ class FlaskProjectTest(FlaskTest):
         ExitHandler.revert_exit()
         print("Checking GET without data.")
         output = {"success": True, "data": {}}
-        asyncio.get_event_loop().run_until_complete(self.test_get_method("/api/v1/teams", output))
+        asyncio.get_event_loop().run_until_complete(self.test_get_method("/api/v1/teams", output, 200, "Successful"))
         return CheckResult.correct()
 
     @dynamic_test(order=5)
@@ -257,7 +256,7 @@ class FlaskProjectTest(FlaskTest):
         ExitHandler.revert_exit()
         print("GET method at /api/v1/teams")
         expected = {"success": True, "data": {"CHG": "Chicago Gulls", "PRW": "Prague Wizards"}}
-        asyncio.get_event_loop().run_until_complete(self.test_get_method("/api/v1/teams", expected))
+        asyncio.get_event_loop().run_until_complete(self.test_get_method("/api/v1/teams", expected, 200, "Successful"))
         return CheckResult.correct()
 
     @dynamic_test(order=7)

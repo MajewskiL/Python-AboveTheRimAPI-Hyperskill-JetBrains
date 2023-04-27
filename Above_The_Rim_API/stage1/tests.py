@@ -81,11 +81,11 @@ class SQLite3Test:
         if len(names) != 1:
             if sorted(names) != sorted([line[0].lower() for line in lines]):
                 self.close()
-                raise WrongAnswer(f"There is something wrong in table {name}. Found column names: {[line[0] for line in lines]}. Expected {names}'")
+                raise WrongAnswer(f"There is something wrong in table {name}. Found column names: {[line[0].lower() for line in lines]}. Expected {names}'")
         else:
             if not any([names[0] == c_name for c_name in [line[0].lower() for line in lines]]):
                 self.close()
-                raise WrongAnswer(f"There is something wrong in table {name}. Found column names: {[line[0] for line in lines]}. Expected to find '{names[0]}'")
+                raise WrongAnswer(f"There is something wrong in table {name}. Found column names: {[line[0].lower() for line in lines]}. Expected to find '{names[0]}'")
 
     def table_info(self, name, column, attribute):   # table name -> string, column name -> string, attr ("PK" Primary Key; "NN" Not null)
         lines = self.run_query(f"PRAGMA table_info({name})").fetchall()

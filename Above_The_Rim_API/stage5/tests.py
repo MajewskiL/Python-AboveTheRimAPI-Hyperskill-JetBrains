@@ -236,7 +236,7 @@ class FlaskProjectTest(FlaskTest):
         database.connect()
         database.is_file_exist()
         tables = {"teams": {"id": ["PK"], "short": ["NN","UN"], "name": ["NN","UN"]},
-                  "games": {"id": ["PK"], "home_team": ["FK"], "visiting_team": ["FK"], "home_team_score": [], "visiting_team_score": []},
+                  "games": {"id": ["PK"], "home_team_id": ["FK"], "visiting_team_id": ["FK"], "home_team_score": [], "visiting_team_score": []},
                   "quarters": {"id": ["PK"], "game_id": ["FK"], "quarters": []}}
         for table, columns in tables.items():
             database.is_table_exist(table)

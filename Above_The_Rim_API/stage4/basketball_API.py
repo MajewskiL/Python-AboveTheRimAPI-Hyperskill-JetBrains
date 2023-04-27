@@ -23,8 +23,8 @@ class TeamModel(db.Model):
 class GameModel(db.Model):
     __tablename__ = "games"
     id = db.Column(db.Integer, primary_key=True)
-    home_team = db.Column(db.Integer, db.ForeignKey('teams.id'))
-    visiting_team = db.Column(db.Integer, db.ForeignKey('teams.id'))
+    home_team_id = db.Column(db.Integer, db.ForeignKey('teams.id'))
+    visiting_team_id = db.Column(db.Integer, db.ForeignKey('teams.id'))
     home_team_score = db.Column(db.Integer)
     visiting_team_score = db.Column(db.Integer)
 
@@ -43,8 +43,8 @@ def serialize_team_model(datas: TeamModel):
 def serialize_game_model(datas: GameModel):
     out = {}
     for data in datas:
-        h_team = TeamModel.query.filter_by(short=data.home_team).first()
-        v_team = TeamModel.query.filter_by(short=data.visiting_team).first()
+        h_team = TeamModel.query.filter_by(id=data.home_team_id).first()
+        v_team = TeamModel.query.filter_by(id=data.visiting_team_id).first()
         out[data.id] = f"{h_team.name} {data.home_team_score}:{data.visiting_team_score} {v_team.name}"
     return out
 
@@ -74,9 +74,11 @@ def games():
         data = request.get_json()
         if any([d not in [da for da in data.keys()] for d in ["visiting_team", "home_team", "home_team_score", "visiting_team_score"]]):
             return jsonify({"success": False, "data": "All fields are required"}), 400
-        if TeamModel.query.filter_by(short=data["visiting_team"]).first() and TeamModel.query.filter_by(short=data["home_team"]).first():
-            new = GameModel(home_team=data["home_team"],
-                            visiting_team=data["visiting_team"],
+        v_team = TeamModel.query.filter_by(short=data["visiting_team"]).first()
+        h_team = TeamModel.query.filter_by(short=data["home_team"]).first()
+        if v_team and h_team:
+            new = GameModel(home_team_id=h_team.id,
+                            visiting_team_id=v_team.id,
                             home_team_score=data["home_team_score"],
                             visiting_team_score=data["visiting_team_score"])
             db.session.add(new)
@@ -90,12 +92,13 @@ def games():
 def team(name):
     team = TeamModel.query.filter_by(short=name).first()
     if team:
-        all1 = db.session.execute(text(f"""SELECT COUNT (*) FROM games WHERE (home_team = '{team.short}' or visiting_team = '{team.short}')"""))
-        win = db.session.execute(text(f"SELECT COUNT (*) FROM games WHERE (home_team = '{team.short}' "
-                            f"and home_team_score > visiting_team_score) or (visiting_team = '{team.short}' "
+        team_id = team.id
+        all1 = db.session.execute(text(f"""SELECT COUNT (*) FROM games WHERE (home_team_id = '{team_id}' or visiting_team_id = '{team_id}')"""))
+        win = db.session.execute(text(f"SELECT COUNT (*) FROM games WHERE (home_team_id = '{team_id}' "
+                            f"and home_team_score > visiting_team_score) or (visiting_team_id = '{team_id}' "
                             f"and home_team_score < visiting_team_score);"""))
-        lost = db.session.execute(text(f"SELECT COUNT (*) FROM games WHERE (home_team = '{team.short}' "
-                            f"and home_team_score < visiting_team_score) or (visiting_team = '{team.short}' "
+        lost = db.session.execute(text(f"SELECT COUNT (*) FROM games WHERE (home_team_id = '{team_id}' "
+                            f"and home_team_score < visiting_team_score) or (visiting_team_id = '{team_id}' "
                             f"and home_team_score > visiting_team_score);"""))
         lost = lost.first()[0]
         win = win.first()[0]

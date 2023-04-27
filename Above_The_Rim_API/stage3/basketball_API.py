@@ -23,8 +23,8 @@ class TeamModel(db.Model):
 class GameModel(db.Model):
     __tablename__ = "games"
     id = db.Column(db.Integer, primary_key=True)
-    home_team = db.Column(db.Integer, db.ForeignKey('teams.id'))
-    visiting_team = db.Column(db.Integer, db.ForeignKey('teams.id'))
+    home_team_id = db.Column(db.Integer, db.ForeignKey('teams.id'))
+    visiting_team_id = db.Column(db.Integer, db.ForeignKey('teams.id'))
     home_team_score = db.Column(db.Integer)
     visiting_team_score = db.Column(db.Integer)
 
@@ -43,8 +43,8 @@ def serialize_team_model(datas: TeamModel):
 def serialize_game_model(datas: GameModel):
     out = {}
     for data in datas:
-        h_team = TeamModel.query.filter_by(id=data.home_team).first()
-        v_team = TeamModel.query.filter_by(id=data.visiting_team).first()
+        h_team = TeamModel.query.filter_by(id=data.home_team_id).first()
+        v_team = TeamModel.query.filter_by(id=data.visiting_team_id).first()
         out[data.id] = f"{h_team.name} {data.home_team_score}:{data.visiting_team_score} {v_team.name}"
     return out
 
@@ -77,8 +77,8 @@ def games():
         v_team = TeamModel.query.filter_by(short=data["visiting_team"]).first()
         h_team = TeamModel.query.filter_by(short=data["home_team"]).first()
         if v_team and h_team:
-            new = GameModel(home_team=h_team.id,
-                            visiting_team=v_team.id,
+            new = GameModel(home_team_id=h_team.id,
+                            visiting_team_id=v_team.id,
                             home_team_score=data["home_team_score"],
                             visiting_team_score=data["visiting_team_score"])
             db.session.add(new)

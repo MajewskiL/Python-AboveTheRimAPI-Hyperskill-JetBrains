@@ -274,7 +274,7 @@ class FlaskProjectTest(FlaskTest):
         ExitHandler.revert_exit()
         print("Proper GET method at /api/v1/games")
         expected = {"success": True, "data": {"1": "Chicago Gulls 123:89 Prague Wizards", "2": "Prague Wizards 76:67 Chicago Gulls"}}
-        asyncio.get_event_loop().run_until_complete(self.test_get_method("/api/v1/games", expected))
+        asyncio.get_event_loop().run_until_complete(self.test_get_method("/api/v1/games", expected, 200, "Successful"))
         return CheckResult.correct()
 
     @dynamic_test(order=9)

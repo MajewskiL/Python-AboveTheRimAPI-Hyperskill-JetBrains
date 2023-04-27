@@ -154,9 +154,9 @@ class FlaskProjectTest(FlaskTest):
               "/api/v1/games GET all games",
               "/api/v1/games POST add game",
               "/api/v1/team/%SHORT% GET a team statistics",
-              "/api/v2/games POST add game",
+              "/api/v2/games POST add a new game",
               "/api/v2/games GET all games",
-              "/api/v1/games PUT updated quarters"]
+              "/api/v2/games/%GAME_ID% POST updated quarters"]
         if any([txt not in [l.text for l in list_all_p] for txt in ps]):
             raise WrongAnswer(f'Checking Home Page.\nThere is some mistake in <p> tags!\nExpected:\n{sorted(ps)}\nFound:\n{sorted([txt.text for txt in list_all_p])}')
 
@@ -235,7 +235,7 @@ class FlaskProjectTest(FlaskTest):
         database = SQLite3Test(db_name)
         database.connect()
         database.is_file_exist()
-        tables = {"teams": {"id": ["PK"], "short": ["NN","UN"], "name": ["NN","UN"]},
+        tables = {"teams": {"id": ["PK"], "short": ["NN", "UN"], "name": ["NN", "UN"]},
                   "games": {"id": ["PK"], "home_team_id": ["FK"], "visiting_team_id": ["FK"], "home_team_score": [], "visiting_team_score": []},
                   "quarters": {"id": ["PK"], "game_id": ["FK"], "quarters": []}}
         for table, columns in tables.items():
@@ -368,10 +368,10 @@ class FlaskProjectTest(FlaskTest):
     def test15(self):
         ExitHandler.revert_exit()
         print("PATCH method at /api/v2/games/3")
-        input_post = [{"quarters": "12:20"}, {"quarters": "21:12"}]
+        input_post = [{"quarters": "12:15"}, {"quarters": "21:18"}]
         expected = {"data": "Score updated", "success": True}
         for post in input_post:
-            asyncio.get_event_loop().run_until_complete(self.test_patch_method("/api/v2/games/3", post, expected, 200, "Successful"))
+            asyncio.get_event_loop().run_until_complete(self.test_post_method("/api/v2/games/3", post, expected, 201, "Successful"))
         return CheckResult.correct()
 
     @dynamic_test(order=16)
@@ -380,7 +380,7 @@ class FlaskProjectTest(FlaskTest):
         print("GET method at /api/v2/games.")
         expected = {"success": True, "data": {"1": "Chicago Gulls 123:89 Prague Wizards",
                                               "2": "Prague Wizards 76:67 Chicago Gulls",
-                                              "3": "Prague Wizards 33:32 Chicago Gulls (12:20,21:12)"}}
+                                              "3": "Prague Wizards 33:33 Chicago Gulls (12:15,21:18)"}}
         asyncio.get_event_loop().run_until_complete(self.test_get_method("/api/v2/games", expected, 200, "Successful"))
         return CheckResult.correct()
 
@@ -390,7 +390,7 @@ class FlaskProjectTest(FlaskTest):
         print("GET method at /api/v1/games.")
         expected = {"success": True, "data": {"1": "Chicago Gulls 123:89 Prague Wizards",
                                               "2": "Prague Wizards 76:67 Chicago Gulls",
-                                              "3": "Prague Wizards 33:32 Chicago Gulls"}}
+                                              "3": "Prague Wizards 33:33 Chicago Gulls"}}
         asyncio.get_event_loop().run_until_complete(self.test_get_method("/api/v1/games", expected, 200, "Successful"))
         return CheckResult.correct()
 #  !!!
@@ -401,7 +401,7 @@ class FlaskProjectTest(FlaskTest):
         input_post = [{"id": 6, "quarters": "12:20"}]
         expected = {'data': 'There is no game with id 6', 'success': False}
         for post in input_post:
-            asyncio.get_event_loop().run_until_complete(self.test_patch_method("/api/v2/games/6", post, expected, 400, "Wrong"))
+            asyncio.get_event_loop().run_until_complete(self.test_post_method("/api/v2/games/6", post, expected, 400, "Wrong"))
         return CheckResult.correct()
 
     @dynamic_test(order=19)
@@ -411,7 +411,7 @@ class FlaskProjectTest(FlaskTest):
         input_post = [{"quarters": "12:21"}, {"quarters": "20:12"}, {"quarters": "3:9"}]
         expected = {"data": "Score updated", "success": True}
         for post in input_post:
-            asyncio.get_event_loop().run_until_complete(self.test_patch_method("/api/v2/games/3", post, expected, 200, "Successful"))
+            asyncio.get_event_loop().run_until_complete(self.test_post_method("/api/v2/games/3", post, expected, 201, "Successful"))
         return CheckResult.correct()
 
     @dynamic_test(order=20)
@@ -420,7 +420,7 @@ class FlaskProjectTest(FlaskTest):
         print("GET method at /api/v2/games.")
         expected = {"success": True, "data": {"1": "Chicago Gulls 123:89 Prague Wizards",
                                               "2": "Prague Wizards 76:67 Chicago Gulls",
-                                              "3": "Prague Wizards 68:74 Chicago Gulls (12:20,21:12,12:21,20:12,3:9)"}}
+                                              "3": "Prague Wizards 68:75 Chicago Gulls (12:15,21:18,12:21,20:12,3:9)"}}
         asyncio.get_event_loop().run_until_complete(self.test_get_method("/api/v2/games", expected, 200, "Successful"))
         return CheckResult.correct()
 
@@ -430,7 +430,7 @@ class FlaskProjectTest(FlaskTest):
         print("GET method at /api/v1/games.")
         expected = {"success": True, "data": {"1": "Chicago Gulls 123:89 Prague Wizards",
                                               "2": "Prague Wizards 76:67 Chicago Gulls",
-                                              "3": "Prague Wizards 68:74 Chicago Gulls"}}
+                                              "3": "Prague Wizards 68:75 Chicago Gulls"}}
         asyncio.get_event_loop().run_until_complete(self.test_get_method("/api/v1/games", expected, 200, "Successful"))
         return CheckResult.correct()
 

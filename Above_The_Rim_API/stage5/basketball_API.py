@@ -58,8 +58,6 @@ def serialize_game_model(datas: GameModel, mode=""):
     return out
 
 
-
-
 @app.route('/api/v1/teams', methods=["GET", "POST"])
 def teams():
     if request.method == "GET":
@@ -118,7 +116,7 @@ def games():
             return jsonify({"success": False, "data": "Wrong team short"}), 400
 
 
-@app.route('/api/v2/games/<id_game>', methods=["PATCH"])
+@app.route('/api/v2/games/<id_game>', methods=["POST"])
 def add_quarter(id_game):
     data = request.get_json()
     game = GameModel.query.filter_by(id=id_game).first()
@@ -138,7 +136,7 @@ def add_quarter(id_game):
         game.home_team_score = game.home_team_score + int(data[0])
         game.visiting_team_score = game.visiting_team_score + int(data[1])
         db.session.commit()
-    return jsonify({"success": True, "data": "Score updated"}), 200
+    return jsonify({"success": True, "data": "Score updated"}), 201
 
 
 @app.route('/api/v1/team/<name>')
@@ -170,9 +168,9 @@ def home():
     <p>/api/v1/games GET all games</p>
     <p>/api/v1/games POST add game</p>    
     <p>/api/v1/team/%SHORT% GET a team statistics</p>
-    <p>/api/v2/games POST add game</p>
+    <p>/api/v2/games POST add a new game</p>
     <p>/api/v2/games GET all games</p>
-    <p>/api/v1/games PUT updated quarters</p>
+    <p>/api/v2/games/%GAME_ID% POST updated quarters</p>
     ''', 200
 
 

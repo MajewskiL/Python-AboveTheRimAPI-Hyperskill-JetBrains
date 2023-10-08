@@ -167,6 +167,11 @@ class FlaskProjectTest(FlaskTest):
             content = json.loads(content)
         except json.decoder.JSONDecodeError:
             raise WrongAnswer(f'Checking not existing page.\nRequest do not return JSON data.\nExpected {expected}.\nFound {content}.')
+
+        if not isinstance(content, dict):
+            raise WrongAnswer(f'Checking not existing page.\nRequest return data which json.loads dosen\'t converted to dict. '
+                              f'\nThe type of converted data is {type(content)}. '
+                              f'Check if you pass the JSON object properly.')
         #  expected = json.loads(json.dumps({"success": False, "data": "Wrong address"}))
         if self.check_json(content, expected):
             raise WrongAnswer(f'Checking not existing page.\nWrong JSON format. \nExpected\n{dict(sorted(expected.items()))}, \nFound:\n{dict(sorted(content.items()))}')
@@ -180,6 +185,12 @@ class FlaskProjectTest(FlaskTest):
             content = json.loads(content)
         except json.decoder.JSONDecodeError:
             raise WrongAnswer(f'{text} GET method at {api_address} do not return JSON data.\nExpected {expected}.\nFound {content}.')
+
+        if not isinstance(content, dict):
+            raise WrongAnswer(f'{text} GET method at {api_address} do not return JSON data.'
+                              f'\nRequest return data which json.loads dosen\'t converted to dict. '
+                              f'\nThe type of converted data is {type(content)}. '
+                              f'Check if you pass the JSON object properly.')
         if self.check_json(content, expected):
             raise WrongAnswer(f'{text} GET method at {api_address} return wrong JSON format. \nExpected\n{dict(sorted(expected.items()))}, \nFound:\n{dict(sorted(content.items()))}')
         return
@@ -193,6 +204,12 @@ class FlaskProjectTest(FlaskTest):
             content = json.loads(content)
         except json.decoder.JSONDecodeError:
             raise WrongAnswer(f'{text} POST method at {api_address} do not return JSON data.\nExpected {expected}.\nFound {content}.')
+
+        if not isinstance(content, dict):
+            raise WrongAnswer(f'{text} POST method at {api_address} do not return JSON data.\n'
+                              f'Request return data which json.loads dosen\'t converted to dict. '
+                              f'\nThe type of converted data is {type(content)}. '
+                              f'Check if you pass the JSON object properly.')
         if self.check_json(content, expected):
             raise WrongAnswer(f'{text} POST method at {api_address} return wrong JSON format. \nExpected\n{dict(sorted(expected.items()))}, \nFound:\n{dict(sorted(content.items()))}')
         return
